@@ -33,7 +33,16 @@ export const wColor = (w: number): string => {
 };
 
 /* Segment → semantic role */
-export type SegmentRole = 'system' | 'scaffold' | 'generated' | 'forced' | 'answer' | 'prefix' | 'post' | 'injected' | 'other';
+export type SegmentRole =
+  | 'system'
+  | 'scaffold'
+  | 'generated'
+  | 'forced'
+  | 'answer'
+  | 'prefix'
+  | 'post'
+  | 'injected'
+  | 'other';
 
 export const segRole = (seg?: Segment | null): SegmentRole => {
   const t = seg?.tag || '';

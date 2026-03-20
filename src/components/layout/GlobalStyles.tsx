@@ -5,7 +5,9 @@ interface GlobalStylesProps {
 export default function GlobalStyles({ isDark }: GlobalStylesProps) {
   return (
     <style>{`
-      ${isDark ? `
+      ${
+        isDark
+          ? `
         :root, * {
           --color-background-primary: #1e293b;
           --color-background-secondary: #0f172a;
@@ -13,7 +15,9 @@ export default function GlobalStyles({ isDark }: GlobalStylesProps) {
           --color-text-secondary: #94a3b8;
           --color-border-tertiary: #334155;
         }
-      ` : ''}
+      `
+          : ''
+      }
       @media print {
         body { margin: 0 !important; }
         [data-sidebar] { display: none !important; }
