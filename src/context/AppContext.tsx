@@ -1,5 +1,5 @@
 import { createContext, useContext, useReducer, type ReactNode, type Dispatch } from 'react';
-import type { Rollout, TabKey, SidebarView, AppSettings, FilterState } from '../types';
+import type { Rollout, TabKey, SidebarView, AppSettings, FilterState, ChangeInfo } from '../types';
 
 /* ═══ State shape ═══ */
 export interface AppState {
@@ -14,6 +14,7 @@ export interface AppState {
   filters: FilterState;
   settings: AppSettings;
   treeOpen: Record<string, boolean>;
+  changeInfo: ChangeInfo | null;
 }
 
 export const INITIAL_FILTERS: FilterState = {
@@ -45,6 +46,7 @@ const INITIAL_STATE: AppState = {
   filters: INITIAL_FILTERS,
   settings: INITIAL_SETTINGS,
   treeOpen: {},
+  changeInfo: null,
 };
 
 /* ═══ Actions ═══ */
@@ -64,7 +66,15 @@ export type AppAction =
   | { type: 'SET_SETTINGS'; settings: AppSettings }
   | { type: 'UPDATE_SETTING'; key: keyof AppSettings; value: AppSettings[keyof AppSettings] }
   | { type: 'TOGGLE_TREE'; key: string }
+  | { type: 'CLEAR_CHANGE_INFO' }
   | { type: 'RESET' };
+
+function computeAggregates(rows: Rollout[]) {
+  if (!rows.length) return { meanReward: 0, accuracy: 0 };
+  const total = rows.reduce((s, r) => s + (r.reward ?? 0), 0);
+  const correct = rows.filter((r) => r.correct).length;
+  return { meanReward: total / rows.length, accuracy: correct / rows.length };
+}
 
 function reducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -72,7 +82,17 @@ function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, rows: action.rows, sel: 0, tab: 'overview', selRows: [] };
     case 'REFRESH_ROWS': {
       const sel = action.rows.length > state.sel ? state.sel : 0;
-      return { ...state, rows: action.rows, sel };
+      let changeInfo: ChangeInfo | null = null;
+      if (state.rows.length > 0 && action.rows.length > state.rows.length) {
+        const indices = new Set<number>();
+        for (let j = state.rows.length; j < action.rows.length; j++) indices.add(j);
+        changeInfo = {
+          newRowIndices: indices,
+          prevAggregates: computeAggregates(state.rows),
+          timestamp: Date.now(),
+        };
+      }
+      return { ...state, rows: action.rows, sel, changeInfo };
     }
     case 'SET_SEL':
       return { ...state, sel: action.sel };
@@ -111,6 +131,8 @@ function reducer(state: AppState, action: AppAction): AppState {
         ...state,
         treeOpen: { ...state.treeOpen, [action.key]: !state.treeOpen[action.key] },
       };
+    case 'CLEAR_CHANGE_INFO':
+      return { ...state, changeInfo: null };
     case 'RESET':
       return { ...INITIAL_STATE, settings: state.settings };
     default:

@@ -8,7 +8,7 @@ interface RowListProps {
 }
 
 export default function RowList({ filteredIndices }: RowListProps) {
-  const { rows, sel, selRows } = useAppState();
+  const { rows, sel, selRows, changeInfo } = useAppState();
   const dispatch = useAppDispatch();
 
   const toggleSel = (i: number) => dispatch({ type: 'TOGGLE_SEL', index: i });
@@ -22,14 +22,16 @@ export default function RowList({ filteredIndices }: RowListProps) {
         const vn = (r.metadata || ({} as any))._view_name || '';
         const isSel = selRows.includes(i),
           isA = sel === i;
+        const isNew = changeInfo?.newRowIndices.has(i);
         return (
           <div
-            key={i}
+            key={isNew ? `${i}-${changeInfo!.timestamp}` : i}
             style={{
               display: 'flex',
               borderBottom: '1px solid #e2e8f0',
               background: isA ? '#eff6ff' : isSel ? '#f1f5f9' : '#fff',
               borderLeft: `4px solid ${ok ? CB.green : rw > 0 ? CB.orange : CB.red}`,
+              ...(isNew ? { animation: 'esc-row-flash 2s ease-out forwards' } : {}),
             }}
           >
             <div

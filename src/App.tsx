@@ -6,6 +6,7 @@ import {
   usePersistSettings,
 } from './hooks/usePersistedSettings';
 import { useAutoFetch } from './hooks/useAutoFetch';
+import { useDocumentTitle } from './hooks/useDocumentTitle';
 import { useFilteredRows } from './hooks/useFilteredRows';
 import { useBatchTree } from './hooks/useBatchTree';
 import { useDataLoader } from './hooks/useDataLoader';
@@ -31,6 +32,7 @@ function AppInner() {
   useAutoSaveRows();
   usePersistSettings();
   useAutoFetch();
+  useDocumentTitle();
 
   const { filteredIndices, filterOpts, activeFilters } = useFilteredRows();
   const batchTree = useBatchTree(filteredIndices);

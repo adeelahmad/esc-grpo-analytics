@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { CB } from '../../constants/colors';
 import { useAppState, useAppDispatch } from '../../context/AppContext';
 import type { FilterOptions, BatchStepNode } from '../../types';
@@ -26,8 +27,15 @@ export default function Sidebar({
   fileRef,
   onFileChange,
 }: SidebarProps) {
-  const { rows, selRows, sidebarView, showSettings, settings } = useAppState();
+  const { rows, selRows, sidebarView, showSettings, settings, changeInfo } = useAppState();
   const dispatch = useAppDispatch();
+
+  const currentAgg = useMemo(() => {
+    if (!rows.length) return null;
+    const total = rows.reduce((s, r) => s + (r.reward ?? 0), 0);
+    const correct = rows.filter((r) => r.correct).length;
+    return { meanReward: total / rows.length, accuracy: correct / rows.length };
+  }, [rows]);
 
   const selectAll = () => dispatch({ type: 'SET_SEL_ROWS', selRows: [...filteredIndices] });
   const selectNone = () => dispatch({ type: 'SET_SEL_ROWS', selRows: [] });
@@ -80,7 +88,44 @@ export default function Sidebar({
         <div style={{ fontSize: 11, color: dk('64748b', '94a3b8'), marginTop: 4, fontWeight: 500 }}>
           {rows.length} total · {filteredIndices.length} shown · {selRows.length} sel
           {settings.autoSave && rows.length > 0 ? ' · 💾' : ''}
+          {changeInfo && changeInfo.newRowIndices.size > 0 && (
+            <span
+              style={{
+                marginLeft: 6,
+                fontWeight: 700,
+                fontSize: 10,
+                color: CB.green,
+                animation: 'esc-badge-pulse 1.5s ease-in-out 3',
+              }}
+            >
+              +{changeInfo.newRowIndices.size} new
+            </span>
+          )}
         </div>
+        {changeInfo?.prevAggregates && currentAgg && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              marginTop: 3,
+              fontSize: 9,
+              fontWeight: 700,
+            }}
+          >
+            <DeltaChip
+              label="Reward"
+              prev={changeInfo.prevAggregates.meanReward}
+              curr={currentAgg.meanReward}
+              higherIsBetter
+            />
+            <DeltaChip
+              label="Accuracy"
+              prev={changeInfo.prevAggregates.accuracy}
+              curr={currentAgg.accuracy}
+              higherIsBetter
+            />
+          </div>
+        )}
       </div>
 
       {showSettings && <SettingsPanel dk={dk} />}
@@ -134,5 +179,29 @@ export default function Sidebar({
 
       <SidebarFooter fileRef={fileRef} onFileChange={onFileChange} />
     </div>
+  );
+}
+
+function DeltaChip({
+  label,
+  prev,
+  curr,
+  higherIsBetter,
+}: {
+  label: string;
+  prev: number;
+  curr: number;
+  higherIsBetter: boolean;
+}) {
+  const delta = curr - prev;
+  if (Math.abs(delta) < 0.001) return null;
+  const improved = higherIsBetter ? delta > 0 : delta < 0;
+  const arrow = delta > 0 ? '\u25B2' : '\u25BC';
+  const color = improved ? CB.green : CB.red;
+  return (
+    <span style={{ color }}>
+      {arrow} {label} {delta > 0 ? '+' : ''}
+      {label === 'Accuracy' ? `${(delta * 100).toFixed(1)}%` : delta.toFixed(3)}
+    </span>
   );
 }
