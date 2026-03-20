@@ -12,14 +12,18 @@ export function useLoadPersistedData() {
       try {
         const s = await storage.get('esc-settings');
         if (s) dispatch({ type: 'SET_SETTINGS', settings: JSON.parse(s) as AppSettings });
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
       try {
         const d = await storage.get('esc-data');
         if (d) {
           const p = JSON.parse(d) as Rollout[];
           if (p && p.length) dispatch({ type: 'SET_ROWS', rows: p });
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     })();
   }, [dispatch]);
 }

@@ -1,6 +1,10 @@
 import { useMemo, useCallback } from 'react';
 import { AppProvider, useAppState, useAppDispatch } from './context/AppContext';
-import { useLoadPersistedData, useAutoSaveRows, usePersistSettings } from './hooks/usePersistedSettings';
+import {
+  useLoadPersistedData,
+  useAutoSaveRows,
+  usePersistSettings,
+} from './hooks/usePersistedSettings';
 import { useFilteredRows } from './hooks/useFilteredRows';
 import { useBatchTree } from './hooks/useBatchTree';
 import { useDataLoader } from './hooks/useDataLoader';
@@ -37,10 +41,7 @@ function AppInner() {
       : false;
   }, [settings.theme]);
 
-  const dk = useCallback(
-    (l: string, d: string) => (isDark ? `#${d}` : `#${l}`),
-    [isDark],
-  );
+  const dk = useCallback((l: string, d: string) => (isDark ? `#${d}` : `#${l}`), [isDark]);
 
   const themeVars = { background: dk('f1f5f9', '0f172a'), color: dk('0f172a', 'f1f5f9') };
 
@@ -59,7 +60,16 @@ function AppInner() {
   return (
     <>
       <GlobalStyles isDark={isDark} />
-      <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: 'var(--font-sans)', fontSize: settings.fontSize, ...themeVars }}>
+      <div
+        style={{
+          display: 'flex',
+          height: '100vh',
+          overflow: 'hidden',
+          fontFamily: 'var(--font-sans)',
+          fontSize: settings.fontSize,
+          ...themeVars,
+        }}
+      >
         <Sidebar
           filteredIndices={filteredIndices}
           filterOpts={filterOpts}
@@ -70,10 +80,22 @@ function AppInner() {
           onFileChange={handleFile}
         />
         {row && (
-          <div data-main="" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: dk('f1f5f9', '0f172a') }}>
+          <div
+            data-main=""
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              background: dk('f1f5f9', '0f172a'),
+            }}
+          >
             <TabBar activeFilters={activeFilters} filteredCount={filteredIndices.length} dk={dk} />
             <PrintHeader />
-            <div data-content="" style={{ flex: 1, overflowY: 'auto', padding: compareMode ? 10 : 20 }}>
+            <div
+              data-content=""
+              style={{ flex: 1, overflowY: 'auto', padding: compareMode ? 10 : 20 }}
+            >
               {compareMode ? (
                 <CompareView />
               ) : (
@@ -100,7 +122,22 @@ function AppInner() {
                   )}
                   {tab === 'trends' && <TrendsTab rows={rows} />}
                   {tab === 'raw' && (
-                    <pre style={{ fontSize: 11, background: '#1e293b', padding: 16, borderRadius: 8, overflow: 'auto', whiteSpace: 'pre-wrap', color: '#f8fafc', lineHeight: 1.6, border: '1px solid #0f172a', maxHeight: '100%', margin: 0, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
+                    <pre
+                      style={{
+                        fontSize: 11,
+                        background: '#1e293b',
+                        padding: 16,
+                        borderRadius: 8,
+                        overflow: 'auto',
+                        whiteSpace: 'pre-wrap',
+                        color: '#f8fafc',
+                        lineHeight: 1.6,
+                        border: '1px solid #0f172a',
+                        maxHeight: '100%',
+                        margin: 0,
+                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)',
+                      }}
+                    >
                       {JSON.stringify(row, null, 2)}
                     </pre>
                   )}

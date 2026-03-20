@@ -7,8 +7,11 @@ export function useFilteredRows() {
 
   const filterOpts = useMemo<FilterOptions>(() => {
     if (!rows.length) return { views: [], types: [], members: [], steps: [] };
-    const views = new Set<string>(), types = new Set<string>(), members = new Set<string>(), steps = new Set<string>();
-    rows.forEach(r => {
+    const views = new Set<string>(),
+      types = new Set<string>(),
+      members = new Set<string>(),
+      steps = new Set<string>();
+    rows.forEach((r) => {
       const m = r.metadata || {};
       if (m._view_name) views.add(m._view_name);
       if (r.type) types.add(r.type);
@@ -24,19 +27,29 @@ export function useFilteredRows() {
   }, [rows]);
 
   const filteredIndices = useMemo(() => {
-    return rows.map((_, i) => i).filter(i => {
-      const r = rows[i], m = r.metadata || {};
-      if (filters.view !== 'all' && (m._view_name || '') !== filters.view) return false;
-      if (filters.correct === 'yes' && !r.correct) return false;
-      if (filters.correct === 'no' && r.correct) return false;
-      if (filters.type !== 'all' && (r.type || '') !== filters.type) return false;
-      if (filters.member !== 'all' && String(m._esc_member_idx ?? '') !== filters.member) return false;
-      if (filters.step !== 'all' && String(Math.floor(r.iteration ?? 0)) !== filters.step) return false;
-      return true;
-    });
+    return rows
+      .map((_, i) => i)
+      .filter((i) => {
+        const r = rows[i],
+          m = r.metadata || {};
+        if (filters.view !== 'all' && (m._view_name || '') !== filters.view) return false;
+        if (filters.correct === 'yes' && !r.correct) return false;
+        if (filters.correct === 'no' && r.correct) return false;
+        if (filters.type !== 'all' && (r.type || '') !== filters.type) return false;
+        if (filters.member !== 'all' && String(m._esc_member_idx ?? '') !== filters.member)
+          return false;
+        if (filters.step !== 'all' && String(Math.floor(r.iteration ?? 0)) !== filters.step)
+          return false;
+        return true;
+      });
   }, [rows, filters]);
 
-  const activeFilters = filters.view !== 'all' || filters.correct !== 'all' || filters.type !== 'all' || filters.member !== 'all' || filters.step !== 'all';
+  const activeFilters =
+    filters.view !== 'all' ||
+    filters.correct !== 'all' ||
+    filters.type !== 'all' ||
+    filters.member !== 'all' ||
+    filters.step !== 'all';
 
   return { filteredIndices, filterOpts, activeFilters };
 }

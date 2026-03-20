@@ -14,8 +14,11 @@ export default memo(function CanvasHeatmap({ weights, height = 28 }: CanvasHeatm
     if (!cv || !weights.length) return;
     const ctx = cv.getContext('2d');
     if (!ctx) return;
-    const W = cv.width, H = cv.height;
-    const mi = safeMin(weights), mx = safeMax(weights), rng = mx - mi || 1;
+    const W = cv.width,
+      H = cv.height;
+    const mi = safeMin(weights),
+      mx = safeMax(weights),
+      rng = mx - mi || 1;
     ctx.clearRect(0, 0, W, H);
     const step = W / weights.length;
     weights.forEach((v, i) => {
@@ -26,12 +29,27 @@ export default memo(function CanvasHeatmap({ weights, height = 28 }: CanvasHeatm
   }, [weights]);
 
   if (!weights.length) return null;
-  const mi = safeMin(weights), mx = safeMax(weights);
+  const mi = safeMin(weights),
+    mx = safeMax(weights);
 
   return (
     <div>
-      <canvas ref={ref} width={Math.min(weights.length * 2, 1200)} height={height} style={{ width: '100%', height, borderRadius: 4, display: 'block' }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--color-text-secondary)', marginTop: 4, fontWeight: 500 }}>
+      <canvas
+        ref={ref}
+        width={Math.min(weights.length * 2, 1200)}
+        height={height}
+        style={{ width: '100%', height, borderRadius: 4, display: 'block' }}
+      />
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          fontSize: 9,
+          color: 'var(--color-text-secondary)',
+          marginTop: 4,
+          fontWeight: 500,
+        }}
+      >
         <span>min:{mi.toFixed(3)}</span>
         <span>{weights.length} tokens</span>
         <span>max:{mx.toFixed(3)}</span>

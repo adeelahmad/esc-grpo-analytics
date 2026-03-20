@@ -78,7 +78,14 @@ export type ThemeSetting = 'system' | 'light' | 'dark';
 export type ColorMode = 'hybrid' | 'proximity' | 'role';
 export type SortMode = 'index' | 'weight_asc' | 'weight_desc' | 'mult_desc';
 export type CorrectFilter = 'all' | 'yes' | 'no';
-export type LegendKey = 'system' | 'masked' | 'modified' | 'forced' | 'trainable_hi' | 'trainable_lo' | null;
+export type LegendKey =
+  | 'system'
+  | 'masked'
+  | 'modified'
+  | 'forced'
+  | 'trainable_hi'
+  | 'trainable_lo'
+  | null;
 
 export interface AppSettings {
   autoSave: boolean;
@@ -157,8 +164,22 @@ export interface ForcedStats {
 /* ═══ Tooltip data ═══ */
 
 export type TooltipData =
-  | { type: 'segment'; tag?: string; source?: string; token_count?: number; masked?: boolean; text?: string }
-  | { type: 'token'; pos: number; w: number; role?: string; masked?: boolean | null; hasChange?: boolean }
+  | {
+      type: 'segment';
+      tag?: string;
+      source?: string;
+      token_count?: number;
+      masked?: boolean;
+      text?: string;
+    }
+  | {
+      type: 'token';
+      pos: number;
+      w: number;
+      role?: string;
+      masked?: boolean | null;
+      hasChange?: boolean;
+    }
   | { type: 'change'; c: TokenChange };
 
 export interface TooltipPos {

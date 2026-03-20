@@ -104,21 +104,54 @@ export default function Dashboard({ rows, row }: DashboardProps) {
   return (
     <div>
       <HelpBox>
-        All metrics below are <strong>auto-discovered</strong> from the step/metadata fields in your JSONL.
-        The <span style={{ color: CB.magenta, fontWeight: 700 }}>magenta marker</span> shows
+        All metrics below are <strong>auto-discovered</strong> from the step/metadata fields in your
+        JSONL. The <span style={{ color: CB.magenta, fontWeight: 700 }}>magenta marker</span> shows
         the currently selected rollout.
       </HelpBox>
 
       {aStats && (
-        <Panel title={`${METRIC_CFG.weight_angle_avg.icon} Rotation Angle (weight_angle_avg)`} bc={CB.magenta}>
+        <Panel
+          title={`${METRIC_CFG.weight_angle_avg.icon} Rotation Angle (weight_angle_avg)`}
+          bc={CB.magenta}
+        >
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-            <Chip label="Current" value={aStats.last.toFixed(4) + '°'} bg="#fdf2f8" color={CB.magenta} />
-            <Chip label="Start" value={aStats.first.toFixed(4) + '°'} bg="#f1f5f9" color={CB.slate} />
+            <Chip
+              label="Current"
+              value={aStats.last.toFixed(4) + '°'}
+              bg="#fdf2f8"
+              color={CB.magenta}
+            />
+            <Chip
+              label="Start"
+              value={aStats.first.toFixed(4) + '°'}
+              bg="#f1f5f9"
+              color={CB.slate}
+            />
             <Chip label="Min" value={aStats.min.toFixed(4) + '°'} bg="#f0fdf4" color={CB.green} />
-            <Chip label="Max" value={aStats.max.toFixed(4) + '°'} bg={aStats.max >= 1.9 ? '#fef2f2' : '#f0fdf4'} color={aStats.max >= 1.9 ? CB.red : CB.green} />
-            <Chip label="Monotonic" value={aStats.mono ? 'Yes' : 'No'} bg={aStats.mono ? '#f0fdf4' : '#fef2f2'} color={aStats.mono ? CB.green : CB.red} />
-            <Chip label="In sweet" value={`${aStats.sweet}/${angleVals.length}`} bg="#f0fdf4" color={CB.green} />
-            <Chip label="In death" value={`${aStats.death}/${angleVals.length}`} bg={aStats.death ? '#fef2f2' : '#f0fdf4'} color={aStats.death ? CB.red : CB.green} />
+            <Chip
+              label="Max"
+              value={aStats.max.toFixed(4) + '°'}
+              bg={aStats.max >= 1.9 ? '#fef2f2' : '#f0fdf4'}
+              color={aStats.max >= 1.9 ? CB.red : CB.green}
+            />
+            <Chip
+              label="Monotonic"
+              value={aStats.mono ? 'Yes' : 'No'}
+              bg={aStats.mono ? '#f0fdf4' : '#fef2f2'}
+              color={aStats.mono ? CB.green : CB.red}
+            />
+            <Chip
+              label="In sweet"
+              value={`${aStats.sweet}/${angleVals.length}`}
+              bg="#f0fdf4"
+              color={CB.green}
+            />
+            <Chip
+              label="In death"
+              value={`${aStats.death}/${angleVals.length}`}
+              bg={aStats.death ? '#fef2f2' : '#f0fdf4'}
+              color={aStats.death ? CB.red : CB.green}
+            />
           </div>
           <SparkLine
             points={metricData.weight_angle_avg}

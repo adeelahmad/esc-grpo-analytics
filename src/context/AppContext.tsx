@@ -75,7 +75,7 @@ function reducer(state: AppState, action: AppAction): AppState {
     case 'TOGGLE_SEL': {
       const i = action.index;
       const selRows = state.selRows.includes(i)
-        ? state.selRows.filter(x => x !== i)
+        ? state.selRows.filter((x) => x !== i)
         : [...state.selRows, i];
       return { ...state, selRows };
     }
@@ -94,9 +94,15 @@ function reducer(state: AppState, action: AppAction): AppState {
     case 'SET_SETTINGS':
       return { ...state, settings: action.settings };
     case 'UPDATE_SETTING':
-      return { ...state, settings: { ...state.settings, [action.key]: action.value } as AppSettings };
+      return {
+        ...state,
+        settings: { ...state.settings, [action.key]: action.value } as AppSettings,
+      };
     case 'TOGGLE_TREE':
-      return { ...state, treeOpen: { ...state.treeOpen, [action.key]: !state.treeOpen[action.key] } };
+      return {
+        ...state,
+        treeOpen: { ...state.treeOpen, [action.key]: !state.treeOpen[action.key] },
+      };
     case 'RESET':
       return { ...INITIAL_STATE, settings: state.settings };
     default:
@@ -112,9 +118,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   return (
     <AppStateContext.Provider value={state}>
-      <AppDispatchContext.Provider value={dispatch}>
-        {children}
-      </AppDispatchContext.Provider>
+      <AppDispatchContext.Provider value={dispatch}>{children}</AppDispatchContext.Provider>
     </AppStateContext.Provider>
   );
 }
