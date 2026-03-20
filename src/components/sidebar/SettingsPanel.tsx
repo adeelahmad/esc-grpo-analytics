@@ -147,6 +147,119 @@ export default function SettingsPanel({ dk }: SettingsPanelProps) {
           </button>
         ))}
       </div>
+      {/* Sort order */}
+      <label
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          cursor: 'pointer',
+          fontSize: 11,
+          color: dk('334155', 'e2e8f0'),
+          marginTop: 4,
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={settings.sortNewestFirst}
+          onChange={(e) => update('sortNewestFirst', e.target.checked)}
+          style={{ width: 14, height: 14, accentColor: CB.blue }}
+        />
+        <div>
+          <div style={{ fontWeight: 600 }}>Newest first</div>
+          <div style={{ fontSize: 9, color: dk('94a3b8', '64748b') }}>
+            Sort rollouts by most recent iteration
+          </div>
+        </div>
+      </label>
+      {/* Live rollout source */}
+      <div style={{ fontSize: 10, fontWeight: 600, color: dk('475569', '94a3b8'), marginTop: 4 }}>
+        Rollout Source{' '}
+        {settings.rolloutUrl && (
+          <span
+            style={{
+              display: 'inline-block',
+              width: 6,
+              height: 6,
+              borderRadius: '50%',
+              background: '#22c55e',
+              marginLeft: 4,
+              verticalAlign: 'middle',
+            }}
+            title="Live polling active"
+          />
+        )}
+      </div>
+      {import.meta.env.VITE_ROLLOUTS_PATH && (
+        <div
+          style={{
+            fontSize: 9,
+            color: dk('64748b', '94a3b8'),
+            background: dk('f1f5f9', '0f172a'),
+            padding: '3px 6px',
+            borderRadius: 4,
+            fontFamily: 'monospace',
+            wordBreak: 'break-all',
+          }}
+        >
+          {import.meta.env.VITE_ROLLOUTS_PATH}
+        </div>
+      )}
+      <input
+        type="text"
+        value={settings.rolloutUrl}
+        onChange={(e) => update('rolloutUrl', e.target.value)}
+        placeholder="URL to rollouts.jsonl (or set VITE_ROLLOUTS_PATH)"
+        style={{
+          width: '100%',
+          padding: '4px 6px',
+          fontSize: 10,
+          borderRadius: 4,
+          border: '1px solid ' + dk('cbd5e1', '475569'),
+          background: dk('fff', '0f172a'),
+          color: dk('0f172a', 'f1f5f9'),
+          boxSizing: 'border-box',
+        }}
+      />
+      {/* Poll interval */}
+      {settings.rolloutUrl && (
+        <>
+          <div
+            style={{ fontSize: 10, fontWeight: 600, color: dk('475569', '94a3b8'), marginTop: 2 }}
+          >
+            Poll Interval
+          </div>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {(
+              [
+                [5, '5s'],
+                [10, '10s'],
+                [30, '30s'],
+                [60, '60s'],
+              ] as const
+            ).map(([v, l]) => (
+              <button
+                key={v}
+                onClick={() => update('pollInterval', v)}
+                style={{
+                  flex: 1,
+                  padding: '4px 0',
+                  borderRadius: 4,
+                  fontSize: 10,
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  background: settings.pollInterval === v ? CB.blue : dk('f1f5f9', '334155'),
+                  color: settings.pollInterval === v ? '#fff' : dk('475569', '94a3b8'),
+                  border:
+                    settings.pollInterval === v ? 'none' : '1px solid ' + dk('cbd5e1', '475569'),
+                }}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
       <div style={{ fontSize: 9, color: dk('94a3b8', '64748b'), fontStyle: 'italic' }}>
         Settings persist across sessions.
       </div>

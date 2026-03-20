@@ -70,6 +70,14 @@ export interface Rollout {
   [key: string]: unknown;
 }
 
+/* ═══ Change detection ═══ */
+
+export interface ChangeInfo {
+  newRowIndices: Set<number>;
+  prevAggregates: { meanReward: number; accuracy: number } | null;
+  timestamp: number;
+}
+
 /* ═══ UI state types ═══ */
 
 export type TabKey = 'overview' | 'scaffold' | 'tokens' | 'group' | 'trends' | 'dashboard' | 'raw';
@@ -91,6 +99,9 @@ export interface AppSettings {
   autoSave: boolean;
   theme: ThemeSetting;
   fontSize: number;
+  rolloutUrl: string;
+  pollInterval: number;
+  sortNewestFirst: boolean;
 }
 
 export interface FilterState {

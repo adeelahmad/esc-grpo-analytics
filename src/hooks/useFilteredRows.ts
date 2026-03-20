@@ -3,7 +3,7 @@ import { useAppState } from '../context/AppContext';
 import type { FilterOptions } from '../types';
 
 export function useFilteredRows() {
-  const { rows, filters } = useAppState();
+  const { rows, filters, settings } = useAppState();
 
   const filterOpts = useMemo<FilterOptions>(() => {
     if (!rows.length) return { views: [], types: [], members: [], steps: [] };
@@ -27,7 +27,7 @@ export function useFilteredRows() {
   }, [rows]);
 
   const filteredIndices = useMemo(() => {
-    return rows
+    const indices = rows
       .map((_, i) => i)
       .filter((i) => {
         const r = rows[i],
@@ -42,7 +42,11 @@ export function useFilteredRows() {
           return false;
         return true;
       });
-  }, [rows, filters]);
+    if (settings.sortNewestFirst) {
+      indices.sort((a, b) => (rows[b].iteration ?? 0) - (rows[a].iteration ?? 0));
+    }
+    return indices;
+  }, [rows, filters, settings.sortNewestFirst]);
 
   const activeFilters =
     filters.view !== 'all' ||

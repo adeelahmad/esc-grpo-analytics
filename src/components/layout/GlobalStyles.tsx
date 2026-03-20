@@ -47,6 +47,18 @@ export default function GlobalStyles({ isDark }: GlobalStylesProps) {
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
       }
       @media screen { [data-print-header] { display: none; } }
+      @keyframes esc-row-flash {
+        0%   { background-color: #dbeafe; }
+        100% { background-color: transparent; }
+      }
+      @keyframes esc-row-flash-dark {
+        0%   { background-color: #1e3a5f; }
+        100% { background-color: transparent; }
+      }
+      @keyframes esc-badge-pulse {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.5; }
+      }
     `}</style>
   );
 }

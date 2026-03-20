@@ -8,7 +8,7 @@ interface BatchTreeProps {
 }
 
 export default function BatchTree({ batchTree }: BatchTreeProps) {
-  const { rows, sel, selRows, treeOpen } = useAppState();
+  const { rows, sel, selRows, treeOpen, changeInfo } = useAppState();
   const dispatch = useAppDispatch();
 
   const toggleTree = (key: string) => dispatch({ type: 'TOGGLE_TREE', key });
@@ -185,14 +185,18 @@ export default function BatchTree({ batchTree }: BatchTreeProps) {
                                   const isSel = selRows.includes(i),
                                     isA = sel === i;
                                   const vn = (r.metadata || ({} as any))._view_name || '';
+                                  const isNew = changeInfo?.newRowIndices.has(i);
                                   return (
                                     <div
-                                      key={i}
+                                      key={isNew ? `${i}-${changeInfo!.timestamp}` : i}
                                       style={{
                                         display: 'flex',
                                         borderBottom: '1px solid #f1f5f9',
                                         background: isA ? '#dbeafe' : isSel ? '#f1f5f9' : '#fff',
                                         paddingLeft: 48,
+                                        ...(isNew
+                                          ? { animation: 'esc-row-flash 2s ease-out forwards' }
+                                          : {}),
                                       }}
                                     >
                                       <div
