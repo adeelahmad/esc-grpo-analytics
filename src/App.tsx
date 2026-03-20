@@ -20,6 +20,7 @@ import ScaffoldTab from './components/tabs/ScaffoldTab';
 import TokenTab from './components/tabs/TokenTab';
 import GroupTab from './components/tabs/GroupTab';
 import TrendsTab from './components/tabs/TrendsTab';
+import WandbDashboardTab from './components/tabs/WandbDashboardTab';
 
 function AppInner() {
   const { rows, sel, tab, compareMode, settings } = useAppState();
@@ -121,6 +122,7 @@ function AppInner() {
                     />
                   )}
                   {tab === 'trends' && <TrendsTab rows={rows} />}
+                  {tab === 'dashboard' && <WandbDashboardTab rows={rows} row={row} />}
                   {tab === 'raw' && (
                     <pre
                       style={{

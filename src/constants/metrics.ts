@@ -90,6 +90,63 @@ export const METRIC_CFG: Record<string, MetricConfig> = {
     help: 'Model perplexity. Lower = more confident predictions. Should decrease over training.',
   },
   progress: { icon: '📈', color: '#16a34a', help: 'Training progress indicator.' },
+
+  /* ═══ Rollout-derived metrics ═══ */
+  accuracy: {
+    icon: '🎯',
+    color: '#16a34a',
+    help: 'Per-step accuracy (correct / total rollouts). Should trend upward over training.',
+  },
+  reward_per_step: {
+    icon: '🏆',
+    color: '#16a34a',
+    help: 'Mean reward aggregated per training step across all rollouts.',
+  },
+  advantage_per_step: {
+    icon: '📊',
+    color: CB.teal,
+    help: 'Mean advantage per training step. Positive = outperforming baseline.',
+  },
+  reward_std_per_step: {
+    icon: '📏',
+    color: CB.orange,
+    help: 'Standard deviation of rewards per step. Should stabilize as training converges.',
+  },
+  forced_rate: {
+    icon: '💉',
+    color: '#c2410c',
+    help: 'Fraction of rollouts with forced (injected) answers per step. High rates may indicate the model struggles.',
+  },
+  generated_tokens: {
+    icon: '📝',
+    color: CB.blue,
+    help: 'Number of generated tokens per rollout over time. Watch for length exploitation.',
+  },
+  total_tokens: {
+    icon: '📦',
+    color: CB.cyan,
+    help: 'Total completion tokens (including scaffold) per rollout over time.',
+  },
+  scaffold_ratio: {
+    icon: '🔧',
+    color: CB.orange,
+    help: 'Ratio of generated tokens to scaffold tokens. Rising = model relies less on scaffold.',
+  },
+  n_eff: {
+    icon: '📐',
+    color: CB.purple,
+    help: 'Effective sample count (ESC n_eff) per rollout. Higher = more diverse effective samples.',
+  },
+  shaped_reward: {
+    icon: '🎁',
+    color: CB.yellow,
+    help: 'Shaped reward signal per rollout. The modified reward used for policy optimization.',
+  },
+  length_vs_reward: {
+    icon: '📏',
+    color: CB.cyan,
+    help: 'Token length vs reward scatter — looking for reward hacking (longer outputs = higher reward).',
+  },
 };
 
 export const PALETTE = [
