@@ -10,6 +10,7 @@ const TABS: { id: TabKey; lbl: string }[] = [
   { id: 'tokens', lbl: 'Token Heatmaps' },
   { id: 'group', lbl: 'Group Insights' },
   { id: 'trends', lbl: 'Trends' },
+  { id: 'persona', lbl: 'Persona Analysis' },
   { id: 'raw', lbl: 'Raw JSON' },
 ];
 

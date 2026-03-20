@@ -20,6 +20,7 @@ import ScaffoldTab from './components/tabs/ScaffoldTab';
 import TokenTab from './components/tabs/TokenTab';
 import GroupTab from './components/tabs/GroupTab';
 import TrendsTab from './components/tabs/TrendsTab';
+import PersonaTab from './components/tabs/PersonaTab';
 
 function AppInner() {
   const { rows, sel, tab, compareMode, settings } = useAppState();
@@ -121,6 +122,7 @@ function AppInner() {
                     />
                   )}
                   {tab === 'trends' && <TrendsTab rows={rows} />}
+                  {tab === 'persona' && <PersonaTab row={row} rows={rows} />}
                   {tab === 'raw' && (
                     <pre
                       style={{

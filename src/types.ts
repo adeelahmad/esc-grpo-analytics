@@ -72,7 +72,7 @@ export interface Rollout {
 
 /* ═══ UI state types ═══ */
 
-export type TabKey = 'overview' | 'scaffold' | 'tokens' | 'group' | 'trends' | 'raw';
+export type TabKey = 'overview' | 'scaffold' | 'tokens' | 'group' | 'trends' | 'persona' | 'raw';
 export type SidebarView = 'list' | 'batch';
 export type ThemeSetting = 'system' | 'light' | 'dark';
 export type ColorMode = 'hybrid' | 'proximity' | 'role';
