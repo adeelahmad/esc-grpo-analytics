@@ -172,9 +172,9 @@ export default function SettingsPanel({ dk }: SettingsPanelProps) {
           </div>
         </div>
       </label>
-      {/* Live rollout URL */}
+      {/* Live rollout source */}
       <div style={{ fontSize: 10, fontWeight: 600, color: dk('475569', '94a3b8'), marginTop: 4 }}>
-        Rollout URL{' '}
+        Rollout Source{' '}
         {settings.rolloutUrl && (
           <span
             style={{
@@ -190,11 +190,26 @@ export default function SettingsPanel({ dk }: SettingsPanelProps) {
           />
         )}
       </div>
+      {import.meta.env.VITE_ROLLOUTS_PATH && (
+        <div
+          style={{
+            fontSize: 9,
+            color: dk('64748b', '94a3b8'),
+            background: dk('f1f5f9', '0f172a'),
+            padding: '3px 6px',
+            borderRadius: 4,
+            fontFamily: 'monospace',
+            wordBreak: 'break-all',
+          }}
+        >
+          {import.meta.env.VITE_ROLLOUTS_PATH}
+        </div>
+      )}
       <input
         type="text"
         value={settings.rolloutUrl}
         onChange={(e) => update('rolloutUrl', e.target.value)}
-        placeholder="/rollouts.jsonl or full URL"
+        placeholder="URL to rollouts.jsonl (or set VITE_ROLLOUTS_PATH)"
         style={{
           width: '100%',
           padding: '4px 6px',
