@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import type { Rollout, ChartPoint } from '../../types';
 import { CB } from '../../constants/colors';
-import { METRIC_CFG } from '../../constants/metrics';
+import { METRIC_CFG, PALETTE } from '../../constants/metrics';
 import { fmtIter } from '../../utils/format';
 import { isForced } from '../../utils/data';
 import HelpBox from '../ui/HelpBox';
 import DashboardSection from './DashboardSection';
+import type { MetricMeta } from './DashboardSection';
 
 interface WandbDashboardTabProps {
   rows: Rollout[];
@@ -23,6 +24,7 @@ const ROLLOUT_KEYS = [
   'scaffold_ratio',
   'n_eff',
   'shaped_reward',
+  'length_vs_reward',
 ];
 
 const SECTION_RULES: { id: string; label: string; match: (k: string) => boolean }[] = [
@@ -65,6 +67,16 @@ const SECTION_RULES: { id: string; label: string; match: (k: string) => boolean 
     id: 'weights',
     label: 'Weight Metrics',
     match: (k) => k.includes('weight') || k.includes('angle'),
+  },
+  {
+    id: 'type',
+    label: 'Type',
+    match: (k) => k.startsWith('type:'),
+  },
+  {
+    id: 'view',
+    label: 'View',
+    match: (k) => k.startsWith('view:'),
   },
   { id: 'other', label: 'Other Metrics', match: () => true },
 ];
@@ -109,9 +121,10 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
     return { series: pts, allKeys: [...keySet] };
   }, [rows]);
 
-  /* ═══ All metric chart data (step metrics + rollout-derived) ═══ */
-  const metricData = useMemo(() => {
+  /* ═══ All metric chart data ═══ */
+  const { metricData, metricMeta } = useMemo(() => {
     const result: Record<string, ChartPoint[]> = {};
+    const meta: Record<string, MetricMeta> = {};
 
     // Step-level metrics from series
     allKeys.forEach((key) => {
@@ -121,7 +134,7 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
       if (pts.length > 0) result[key] = pts;
     });
 
-    // ── Rollout-derived: step-aggregated metrics ──
+    // ── Step-aggregated rollout metrics ──
     const stepBuckets: Record<
       number,
       {
@@ -154,7 +167,10 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
       x: fmtIter(s),
       y: stepBuckets[s].total > 0 ? stepBuckets[s].correct / stepBuckets[s].total : 0,
     }));
-    if (accPts.length > 0) result.accuracy = accPts;
+    if (accPts.length > 0) {
+      result.accuracy = accPts;
+      meta.accuracy = { yRange: [0, 1] };
+    }
 
     // Mean reward per step
     const rwPts = sortedSteps.map((s) => {
@@ -180,17 +196,18 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
     if (stdPts.length > 0) result.reward_std_per_step = stdPts;
 
     // Forced rate per step
-    const forcedPts = sortedSteps
-      .map((s) => ({
+    const hasAnyForced = sortedSteps.some((st) => stepBuckets[st].forced > 0);
+    if (hasAnyForced) {
+      const forcedPts = sortedSteps.map((s) => ({
         x: fmtIter(s),
         y: stepBuckets[s].total > 0 ? stepBuckets[s].forced / stepBuckets[s].total : 0,
-      }))
-      .filter((p) => p.y > 0 || sortedSteps.some((st) => stepBuckets[st].forced > 0));
-    if (forcedPts.length > 0) result.forced_rate = forcedPts;
+      }));
+      result.forced_rate = forcedPts;
+      meta.forced_rate = { yRange: [0, 1] };
+    }
 
-    // ── Rollout-derived: per-iteration metrics ──
+    // ── Per-iteration metrics ──
     const iterSeen = new Set<string>();
-
     const genTokPts: ChartPoint[] = [];
     const totalTokPts: ChartPoint[] = [];
     const scaffoldRatioPts: ChartPoint[] = [];
@@ -204,17 +221,14 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
       iterSeen.add(k);
       const label = fmtIter(it);
       const tc = r.token_counts || {};
-      const meta = r.metadata || {};
+      const rm = r.metadata || {};
 
-      // Generated tokens
       const gen = tc.generated ?? tc.total_completion;
       if (gen != null) genTokPts.push({ x: label, y: gen });
 
-      // Total tokens
       const total = tc.total_completion;
       if (total != null) totalTokPts.push({ x: label, y: total });
 
-      // Scaffold ratio (generated / scaffold)
       const segs = r.segments || [];
       const scafTok = segs
         .filter((s) => (s.tag || '').startsWith('scaffold'))
@@ -227,18 +241,11 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
         scaffoldRatioPts.push({ x: label, y: ratio });
       }
 
-      // n_eff
-      if (meta._esc_n_eff != null) {
-        nEffPts.push({ x: label, y: meta._esc_n_eff as number });
-      }
-
-      // shaped_reward
-      if (meta._esc_shaped_reward != null) {
-        shapedPts.push({ x: label, y: meta._esc_shaped_reward as number });
-      }
+      if (rm._esc_n_eff != null) nEffPts.push({ x: label, y: rm._esc_n_eff as number });
+      if (rm._esc_shaped_reward != null)
+        shapedPts.push({ x: label, y: rm._esc_shaped_reward as number });
     });
 
-    // Sort per-iteration series by iteration
     const sortByX = (pts: ChartPoint[]) =>
       pts.sort((a, b) => parseFloat(String(a.x)) - parseFloat(String(b.x)));
 
@@ -248,15 +255,125 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
     if (nEffPts.length > 0) result.n_eff = sortByX(nEffPts);
     if (shapedPts.length > 0) result.shaped_reward = sortByX(shapedPts);
 
-    return result;
+    // ── Length vs Reward (scatter) ──
+    const lrPts = rows
+      .map((r, i) => {
+        const tc = r.token_counts || {};
+        const genTok = tc.generated ?? tc.total_completion ?? 0;
+        return { x: genTok, y: r.reward ?? 0, ok: r.correct, label: `Row ${i + 1}` };
+      })
+      .filter((p) => (p.x as number) > 0);
+    if (lrPts.length > 2) {
+      result.length_vs_reward = lrPts;
+      meta.length_vs_reward = { scatter: true, xLabel: 'Generated tokens', yLabel: 'Reward' };
+    }
+
+    // ── Per-view charts (accuracy & reward over time) ──
+    const viewSteps: Record<
+      string,
+      Record<number, { rewards: number[]; correct: number; total: number }>
+    > = {};
+    rows.forEach((r) => {
+      const v = ((r.metadata || {}) as Record<string, unknown>)._view_name as string | undefined;
+      if (!v) return;
+      const s = Math.floor(r.iteration ?? 0);
+      if (!viewSteps[v]) viewSteps[v] = {};
+      if (!viewSteps[v][s]) viewSteps[v][s] = { rewards: [], correct: 0, total: 0 };
+      const b = viewSteps[v][s];
+      b.rewards.push(r.reward ?? 0);
+      b.total++;
+      if (r.correct) b.correct++;
+    });
+
+    const viewNames = Object.keys(viewSteps).sort();
+    viewNames.forEach((v, vi) => {
+      const steps = Object.keys(viewSteps[v])
+        .map(Number)
+        .sort((a, b) => a - b);
+      if (steps.length < 1) return;
+
+      const accKey = `view:${v}_accuracy`;
+      const rwKey = `view:${v}_reward`;
+
+      result[accKey] = steps.map((s) => ({
+        x: fmtIter(s),
+        y: viewSteps[v][s].total > 0 ? viewSteps[v][s].correct / viewSteps[v][s].total : 0,
+      }));
+      meta[accKey] = { yRange: [0, 1] };
+
+      result[rwKey] = steps.map((s) => {
+        const rws = viewSteps[v][s].rewards;
+        return { x: fmtIter(s), y: rws.reduce((a, b) => a + b, 0) / rws.length };
+      });
+
+      meta[accKey] = {
+        ...meta[accKey],
+        icon: '🏆',
+        color: PALETTE[vi % PALETTE.length],
+      };
+      meta[rwKey] = {
+        icon: '🎯',
+        color: PALETTE[(vi + 1) % PALETTE.length],
+      };
+    });
+
+    // ── Per-type charts (accuracy & reward over time) ──
+    const typeSteps: Record<
+      string,
+      Record<number, { rewards: number[]; correct: number; total: number }>
+    > = {};
+    rows.forEach((r) => {
+      const t = r.type;
+      if (!t) return;
+      const s = Math.floor(r.iteration ?? 0);
+      if (!typeSteps[t]) typeSteps[t] = {};
+      if (!typeSteps[t][s]) typeSteps[t][s] = { rewards: [], correct: 0, total: 0 };
+      const b = typeSteps[t][s];
+      b.rewards.push(r.reward ?? 0);
+      b.total++;
+      if (r.correct) b.correct++;
+    });
+
+    const typeNames = Object.keys(typeSteps).sort();
+    typeNames.forEach((t, ti) => {
+      const steps = Object.keys(typeSteps[t])
+        .map(Number)
+        .sort((a, b) => a - b);
+      if (steps.length < 1) return;
+
+      const accKey = `type:${t}_accuracy`;
+      const rwKey = `type:${t}_reward`;
+
+      result[accKey] = steps.map((s) => ({
+        x: fmtIter(s),
+        y: typeSteps[t][s].total > 0 ? typeSteps[t][s].correct / typeSteps[t][s].total : 0,
+      }));
+      meta[accKey] = { yRange: [0, 1] };
+
+      result[rwKey] = steps.map((s) => {
+        const rws = typeSteps[t][s].rewards;
+        return { x: fmtIter(s), y: rws.reduce((a, b) => a + b, 0) / rws.length };
+      });
+
+      meta[accKey] = {
+        ...meta[accKey],
+        icon: '📋',
+        color: PALETTE[(ti + 4) % PALETTE.length],
+      };
+      meta[rwKey] = {
+        icon: '🎯',
+        color: PALETTE[(ti + 5) % PALETTE.length],
+      };
+    });
+
+    return { metricData: result, metricMeta: meta };
   }, [series, allKeys, rows]);
 
   /* ═══ Group all keys into sections ═══ */
   const sections = useMemo(() => {
-    // Collect all keys that have data
     const allMetricKeys = new Set([...allKeys]);
-    for (const rk of ROLLOUT_KEYS) {
-      if (metricData[rk]) allMetricKeys.add(rk);
+    for (const k of Object.keys(metricData)) {
+      allMetricKeys.add(k);
     }
     const allKeysArr = [...allMetricKeys];
 
@@ -288,8 +405,9 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
     <div style={{ paddingBottom: 40 }}>
       <HelpBox>
         Training metrics and rollout analytics in a grid layout. Includes{' '}
-        <strong>auto-discovered</strong> step metrics and <strong>rollout-derived</strong> charts
-        (accuracy, rewards, forced rate, token counts, scaffold reliance). The{' '}
+        <strong>auto-discovered</strong> step metrics, <strong>rollout-derived</strong> charts
+        (accuracy, rewards, forced rate, token counts, scaffold reliance), and{' '}
+        <strong>per-view/type</strong> breakdowns. The{' '}
         <span style={{ color: CB.magenta, fontWeight: 700 }}>magenta marker</span> shows the
         currently selected rollout.
       </HelpBox>
@@ -303,6 +421,7 @@ export default function WandbDashboardTab({ rows, row }: WandbDashboardTabProps)
             title={section.label}
             metrics={section.keys}
             metricData={metricData}
+            metricMeta={metricMeta}
             highlightX={curIterLabel}
             keyOffset={offset}
           />

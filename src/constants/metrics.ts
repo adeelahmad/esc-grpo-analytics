@@ -142,6 +142,11 @@ export const METRIC_CFG: Record<string, MetricConfig> = {
     color: CB.yellow,
     help: 'Shaped reward signal per rollout. The modified reward used for policy optimization.',
   },
+  length_vs_reward: {
+    icon: '📏',
+    color: CB.cyan,
+    help: 'Token length vs reward scatter — looking for reward hacking (longer outputs = higher reward).',
+  },
 };
 
 export const PALETTE = [

@@ -4,10 +4,20 @@ import DashboardChartCard from './DashboardChartCard';
 
 const PAGE_SIZE = 18;
 
+export interface MetricMeta {
+  scatter?: boolean;
+  xLabel?: string;
+  yLabel?: string;
+  yRange?: [number, number];
+  icon?: string;
+  color?: string;
+}
+
 interface DashboardSectionProps {
   title: string;
   metrics: string[];
   metricData: Record<string, ChartPoint[]>;
+  metricMeta?: Record<string, MetricMeta>;
   highlightX: string | number | null;
   keyOffset: number;
 }
@@ -16,6 +26,7 @@ export default memo(function DashboardSection({
   title,
   metrics,
   metricData,
+  metricMeta,
   highlightX,
   keyOffset,
 }: DashboardSectionProps) {
@@ -88,6 +99,7 @@ export default memo(function DashboardSection({
             {pageMetrics.map((key, i) => {
               const pts = metricData[key];
               if (!pts) return null;
+              const meta = metricMeta?.[key];
               return (
                 <DashboardChartCard
                   key={key}
@@ -95,6 +107,12 @@ export default memo(function DashboardSection({
                   points={pts}
                   highlightX={highlightX}
                   colorIndex={keyOffset + start + i}
+                  scatter={meta?.scatter}
+                  xLabel={meta?.xLabel}
+                  yLabel={meta?.yLabel}
+                  yRange={meta?.yRange}
+                  iconOverride={meta?.icon}
+                  colorOverride={meta?.color}
                 />
               );
             })}
