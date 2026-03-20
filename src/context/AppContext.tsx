@@ -28,6 +28,9 @@ export const INITIAL_SETTINGS: AppSettings = {
   autoSave: true,
   theme: 'system',
   fontSize: 13,
+  rolloutUrl: (import.meta.env.VITE_ROLLOUTS_PATH as string) ?? '',
+  pollInterval: Number(import.meta.env.VITE_POLL_INTERVAL) || 10,
+  sortNewestFirst: true,
 };
 
 const INITIAL_STATE: AppState = {
@@ -47,6 +50,7 @@ const INITIAL_STATE: AppState = {
 /* ═══ Actions ═══ */
 export type AppAction =
   | { type: 'SET_ROWS'; rows: Rollout[] }
+  | { type: 'REFRESH_ROWS'; rows: Rollout[] }
   | { type: 'SET_SEL'; sel: number }
   | { type: 'SET_TAB'; tab: TabKey }
   | { type: 'SET_RAW'; raw: string }
@@ -66,6 +70,10 @@ function reducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_ROWS':
       return { ...state, rows: action.rows, sel: 0, tab: 'overview', selRows: [] };
+    case 'REFRESH_ROWS': {
+      const sel = action.rows.length > state.sel ? state.sel : 0;
+      return { ...state, rows: action.rows, sel };
+    }
     case 'SET_SEL':
       return { ...state, sel: action.sel };
     case 'SET_TAB':

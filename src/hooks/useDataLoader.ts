@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { useAppDispatch } from '../context/AppContext';
-import type { Rollout } from '../types';
+import { parseJsonl } from '../utils/parseJsonl';
 
 export function useDataLoader() {
   const dispatch = useAppDispatch();
@@ -8,16 +8,7 @@ export function useDataLoader() {
 
   const parse = useCallback(
     (text: string) => {
-      const rows = text
-        .trim()
-        .split('\n')
-        .flatMap((l) => {
-          try {
-            return [JSON.parse(l.trim()) as Rollout];
-          } catch {
-            return [];
-          }
-        });
+      const rows = parseJsonl(text);
       if (rows.length) {
         dispatch({ type: 'SET_ROWS', rows });
       }

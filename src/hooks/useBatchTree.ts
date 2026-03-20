@@ -4,7 +4,7 @@ import { isForced } from '../utils/data';
 import type { BatchStepNode } from '../types';
 
 export function useBatchTree(filteredIndices: number[]): BatchStepNode[] {
-  const { rows } = useAppState();
+  const { rows, settings } = useAppState();
 
   return useMemo(() => {
     const tree: Record<string, BatchStepNode> = {};
@@ -36,6 +36,8 @@ export function useBatchTree(filteredIndices: number[]): BatchStepNode[] {
       if (f) tree[sKey].subs[sub].types[type].forced++;
       tree[sKey].rows.push(i);
     });
-    return Object.values(tree).sort((a, b) => a.step - b.step);
-  }, [filteredIndices, rows]);
+    return Object.values(tree).sort((a, b) =>
+      settings.sortNewestFirst ? b.step - a.step : a.step - b.step,
+    );
+  }, [filteredIndices, rows, settings.sortNewestFirst]);
 }

@@ -91,6 +91,9 @@ export interface AppSettings {
   autoSave: boolean;
   theme: ThemeSetting;
   fontSize: number;
+  rolloutUrl: string;
+  pollInterval: number;
+  sortNewestFirst: boolean;
 }
 
 export interface FilterState {
