@@ -100,7 +100,7 @@ export default function SidebarFooter({ fileRef, onFileChange }: SidebarFooterPr
         </button>
       </div>
       <button
-        onClick={() => window.print()}
+        onClick={() => dispatch({ type: 'SET_EXPORTING', exporting: true })}
         style={{
           width: '100%',
           padding: '8px 0',

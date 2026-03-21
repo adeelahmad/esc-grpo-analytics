@@ -44,6 +44,8 @@ export default function GlobalStyles({ isDark }: GlobalStylesProps) {
         [data-tabbar] [data-tabinfo] { display: block !important; font-size: 14pt !important; font-weight: bold !important; }
         [data-print-header] { display: block !important; }
         .panel { break-inside: avoid; }
+        .export-tab-section { page-break-before: always; }
+        .export-tab-header { display: block !important; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
       }
       @media screen { [data-print-header] { display: none; } }

@@ -5,7 +5,7 @@ import { useAppState } from '../../context/AppContext';
 import { TABS } from './TabBar';
 
 export default function PrintHeader() {
-  const { rows, sel, tab } = useAppState();
+  const { rows, sel, tab, exporting } = useAppState();
   const row = rows[sel];
   if (!row) return null;
 
@@ -17,7 +17,8 @@ export default function PrintHeader() {
       <div style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>
         Row {sel + 1} of {rows.length} · Step {fmtIter(row.iteration)} ·{' '}
         {row.correct ? '✓ Correct' : '✗ Wrong'} · R:{(row.reward ?? 0).toFixed(3)}
-        {isForced(row) ? ' · 💉 Forced Answer' : ''} · Tab: {TABS.find((t) => t.id === tab)?.lbl} ·
+        {isForced(row) ? ' · 💉 Forced Answer' : ''} ·{' '}
+        {exporting ? 'Full Report (All Tabs)' : `Tab: ${TABS.find((t) => t.id === tab)?.lbl}`} ·
         Printed {new Date().toLocaleString()}
       </div>
     </div>

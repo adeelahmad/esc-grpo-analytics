@@ -1,5 +1,6 @@
 import { useState, memo } from 'react';
 import type { ChartPoint } from '../../types';
+import { useAppState } from '../../context/AppContext';
 import DashboardChartCard from './DashboardChartCard';
 
 const PAGE_SIZE = 18;
@@ -30,15 +31,17 @@ export default memo(function DashboardSection({
   highlightX,
   keyOffset,
 }: DashboardSectionProps) {
+  const { exporting } = useAppState();
   const [collapsed, setCollapsed] = useState(false);
   const [page, setPage] = useState(0);
 
   const total = metrics.length;
   const pageCount = Math.ceil(total / PAGE_SIZE);
-  const start = page * PAGE_SIZE;
-  const end = Math.min(start + PAGE_SIZE, total);
+  const start = exporting ? 0 : page * PAGE_SIZE;
+  const end = exporting ? total : Math.min(start + PAGE_SIZE, total);
   const pageMetrics = metrics.slice(start, end);
-  const showPagination = total > PAGE_SIZE;
+  const showPagination = !exporting && total > PAGE_SIZE;
+  const isCollapsed = !exporting && collapsed;
 
   return (
     <div style={{ marginBottom: 16 }}>
@@ -86,7 +89,7 @@ export default memo(function DashboardSection({
         </span>
       </button>
 
-      {!collapsed && (
+      {!isCollapsed && (
         <>
           <div
             style={{
