@@ -7,6 +7,7 @@ import type {
   FilterState,
   ChangeInfo,
   AnimateRequest,
+  StreamRequest,
 } from '../types';
 
 /* ═══ State shape ═══ */
@@ -25,6 +26,7 @@ export interface AppState {
   changeInfo: ChangeInfo | null;
   exporting: boolean;
   animateRequest: AnimateRequest | null;
+  streamRequest: StreamRequest | null;
 }
 
 export const INITIAL_FILTERS: FilterState = {
@@ -59,6 +61,7 @@ const INITIAL_STATE: AppState = {
   changeInfo: null,
   exporting: false,
   animateRequest: null,
+  streamRequest: null,
 };
 
 /* ═══ Actions ═══ */
@@ -82,6 +85,8 @@ export type AppAction =
   | { type: 'SET_EXPORTING'; exporting: boolean }
   | { type: 'ANIMATE_SCAFFOLD'; target: number; queue: number[] }
   | { type: 'CLEAR_ANIMATE_REQUEST' }
+  | { type: 'ANIMATE_STREAM'; target: number; queue: number[] }
+  | { type: 'CLEAR_STREAM_REQUEST' }
   | { type: 'RESET' };
 
 function computeAggregates(rows: Rollout[]) {
@@ -159,6 +164,15 @@ function reducer(state: AppState, action: AppAction): AppState {
       };
     case 'CLEAR_ANIMATE_REQUEST':
       return { ...state, animateRequest: null };
+    case 'ANIMATE_STREAM':
+      return {
+        ...state,
+        tab: 'stream' as TabKey,
+        sel: action.target,
+        streamRequest: { target: action.target, queue: action.queue },
+      };
+    case 'CLEAR_STREAM_REQUEST':
+      return { ...state, streamRequest: null };
     case 'RESET':
       return { ...INITIAL_STATE, settings: state.settings };
     default:

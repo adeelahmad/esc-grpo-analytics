@@ -15,9 +15,17 @@ interface GroupTabProps {
   setSelRow: (i: number) => void;
   onCompare?: (indices: number[]) => void;
   onAnimate?: (target: number, queue: number[]) => void;
+  onStream?: (target: number, queue: number[]) => void;
 }
 
-export default function GroupTab({ rows, selRow, setSelRow, onCompare, onAnimate }: GroupTabProps) {
+export default function GroupTab({
+  rows,
+  selRow,
+  setSelRow,
+  onCompare,
+  onAnimate,
+  onStream,
+}: GroupTabProps) {
   const [showVideoExport, setShowVideoExport] = useState(false);
   const cur = rows[selRow];
   if (!cur) return null;
@@ -99,6 +107,29 @@ export default function GroupTab({ rows, selRow, setSelRow, onCompare, onAnimate
             }}
           >
             ▶ Animate Group
+          </button>
+        )}
+        {onStream && siblings.length >= 2 && (
+          <button
+            onClick={() =>
+              onStream(
+                siblings[0].i,
+                siblings.map((s) => s.i),
+              )
+            }
+            style={{
+              padding: '8px 20px',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: `linear-gradient(135deg,${CB.blue},${CB.purple})`,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              boxShadow: '0 2px 8px rgba(0,119,187,0.3)',
+            }}
+          >
+            &#x25B6; Stream Group
           </button>
         )}
         {siblings.length >= 2 && (
@@ -446,8 +477,30 @@ export default function GroupTab({ rows, selRow, setSelRow, onCompare, onAnimate
                         border: 'none',
                         cursor: 'pointer',
                       }}
+                      title="Animate segments"
                     >
                       ▶
+                    </button>
+                  )}
+                  {onStream && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onStream(i, [i]);
+                      }}
+                      style={{
+                        fontSize: 10,
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        background: `linear-gradient(135deg,${CB.blue},${CB.purple})`,
+                        color: '#fff',
+                        fontWeight: 700,
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                      title="Stream tokens"
+                    >
+                      &#x25B6;&#xFE0E;
                     </button>
                   )}
                   {isW && (

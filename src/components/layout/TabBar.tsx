@@ -7,6 +7,7 @@ import type { TabKey } from '../../types';
 const TABS: { id: TabKey; lbl: string }[] = [
   { id: 'overview', lbl: 'Overview' },
   { id: 'scaffold', lbl: 'Scaffold Flow' },
+  { id: 'stream', lbl: 'Stream' },
   { id: 'tokens', lbl: 'Token Heatmaps' },
   { id: 'group', lbl: 'Group Insights' },
   { id: 'trends', lbl: 'Trends' },

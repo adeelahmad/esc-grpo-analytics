@@ -8,6 +8,7 @@ import OverviewTab from '../tabs/OverviewTab';
 import ScaffoldTab from '../tabs/ScaffoldTab';
 import TokenTab from '../tabs/TokenTab';
 import GroupTab from '../tabs/GroupTab';
+import StreamTab from '../tabs/StreamTab';
 import TrendsTab from '../tabs/TrendsTab';
 import WandbDashboardTab from '../tabs/WandbDashboardTab';
 
@@ -31,6 +32,7 @@ export default function CompareView({ exporting }: CompareViewProps) {
     const m = r.metadata || {};
     if (t === 'overview') return <OverviewTab row={r} rows={rows} />;
     if (t === 'scaffold') return <ScaffoldTab row={r} />;
+    if (t === 'stream') return <StreamTab row={r} rows={rows} />;
     if (t === 'tokens')
       return (
         <TokenTab

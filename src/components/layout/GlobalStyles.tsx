@@ -66,6 +66,14 @@ export default function GlobalStyles({ isDark }: GlobalStylesProps) {
         0%   { opacity: 0; transform: translateY(6px) scaleX(0.7); }
         100% { opacity: 1; transform: translateY(0) scaleX(1); }
       }
+      @keyframes esc-cursor-blink {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.2; }
+      }
+      @keyframes esc-token-appear {
+        0%   { opacity: 0.3; }
+        100% { opacity: 1; }
+      }
     `}</style>
   );
 }
