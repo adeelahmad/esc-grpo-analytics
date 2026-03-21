@@ -29,7 +29,7 @@ export const INITIAL_SETTINGS: AppSettings = {
   autoSave: true,
   theme: 'system',
   fontSize: 13,
-  rolloutUrl: import.meta.env.VITE_ROLLOUTS_PATH ? '/__rollouts' : '',
+  rolloutUrl: (import.meta.env.VITE_ROLLOUTS_PATH as string) ?? '',
   pollInterval: Number(import.meta.env.VITE_POLL_INTERVAL) || 10,
   sortNewestFirst: true,
 };

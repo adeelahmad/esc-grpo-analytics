@@ -2,6 +2,14 @@ import { useEffect, useRef } from 'react';
 import { useAppState, useAppDispatch } from '../context/AppContext';
 import { parseJsonl } from '../utils/parseJsonl';
 
+/** Detect absolute filesystem paths and proxy them through the Vite dev middleware. */
+function toFetchUrl(url: string): string {
+  if (/^\/[^/]/.test(url) || /^[a-zA-Z]:[\\/]/.test(url)) {
+    return `/__rollouts?path=${encodeURIComponent(url)}`;
+  }
+  return url;
+}
+
 export function useAutoFetch() {
   const { settings } = useAppState();
   const dispatch = useAppDispatch();
@@ -13,7 +21,7 @@ export function useAutoFetch() {
 
     const fetchData = async () => {
       try {
-        const res = await fetch(rolloutUrl, { cache: 'no-store' });
+        const res = await fetch(toFetchUrl(rolloutUrl), { cache: 'no-store' });
         if (!res.ok) return;
         const text = await res.text();
         if (text === lastContentRef.current) return;
