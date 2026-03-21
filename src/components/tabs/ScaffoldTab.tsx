@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { Rollout, Segment, TooltipData, TooltipPos } from '../../types';
+import type { Rollout, TooltipData, TooltipPos } from '../../types';
 import { CB, segRole, RV, getSrc, tagBg } from '../../constants/colors';
 import { useAppState, useAppDispatch } from '../../context/AppContext';
 import { useAnimationState } from '../../hooks/useAnimationState';
@@ -7,29 +7,7 @@ import Chip from '../ui/Chip';
 import Panel from '../ui/Panel';
 import HelpBox from '../ui/HelpBox';
 import Tooltip from '../ui/Tooltip';
-
-type SegmentWithIdx = Segment & { _idx: number };
-
-function filterRelevant(segs: Segment[]): SegmentWithIdx[] {
-  return segs
-    .map((s, idx) => ({ ...s, _idx: idx }))
-    .filter((s) => {
-      const t = s.tag || '';
-      return (
-        t.startsWith('scaffold') ||
-        t.startsWith('cycle') ||
-        t === 'thinking' ||
-        t === 'answer' ||
-        t === 'forced_answer' ||
-        t === 'answer_prefix' ||
-        t === 'post_scaffold' ||
-        t === 'post_answer' ||
-        t === 'system' ||
-        t === 'prompt' ||
-        s.source === 'SegmentSource.PROMPT'
-      );
-    });
-}
+import { filterRelevant } from '../../utils/segments';
 
 /* ═══ Animation Controls Bar ═══ */
 function AnimationBar({
