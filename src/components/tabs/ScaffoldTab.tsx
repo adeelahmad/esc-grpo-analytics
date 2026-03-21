@@ -1,22 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Rollout, Segment, TooltipData, TooltipPos } from '../../types';
 import { CB, segRole, RV, getSrc, tagBg } from '../../constants/colors';
+import { useAppState, useAppDispatch } from '../../context/AppContext';
+import { useAnimationState } from '../../hooks/useAnimationState';
 import Chip from '../ui/Chip';
 import Panel from '../ui/Panel';
 import HelpBox from '../ui/HelpBox';
 import Tooltip from '../ui/Tooltip';
-import { useTooltip } from '../../hooks/useTooltip';
 
 type SegmentWithIdx = Segment & { _idx: number };
 
-export default function ScaffoldTab({ row }: { row: Rollout }) {
-  const segs = row.segments || [],
-    meta = row.metadata || {};
-  const [exp, setExp] = useState<Record<number, boolean>>({});
-  const [tt, setTt] = useState<TooltipData | null>(null);
-  const [ttPos, setTtPos] = useState<TooltipPos>({ x: 0, y: 0 });
-  const toggle = (i: number) => setExp((e: Record<number, boolean>) => ({ ...e, [i]: !e[i] }));
-  const relevant: SegmentWithIdx[] = segs
+function filterRelevant(segs: Segment[]): SegmentWithIdx[] {
+  return segs
     .map((s, idx) => ({ ...s, _idx: idx }))
     .filter((s) => {
       const t = s.tag || '';
@@ -34,6 +29,162 @@ export default function ScaffoldTab({ row }: { row: Rollout }) {
         s.source === 'SegmentSource.PROMPT'
       );
     });
+}
+
+/* ═══ Animation Controls Bar ═══ */
+function AnimationBar({
+  anim,
+  viewName,
+}: {
+  anim: ReturnType<typeof useAnimationState>;
+  viewName: string;
+}) {
+  const pct = anim.totalSegments > 0 ? (anim.visibleCount / anim.totalSegments) * 100 : 0;
+  return (
+    <div
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        background: '#f0f9ff',
+        border: '1px solid #bae6fd',
+        borderRadius: 8,
+        padding: '10px 16px',
+        marginBottom: 12,
+        display: 'flex',
+        gap: 12,
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        boxShadow: '0 2px 8px rgba(0,119,187,0.1)',
+      }}
+    >
+      {/* Play / Pause */}
+      {anim.done ? (
+        <button onClick={anim.reset} style={btnStyle('#0077bb')}>
+          ↻ Replay
+        </button>
+      ) : anim.paused ? (
+        <button onClick={anim.resume} style={btnStyle('#0077bb')}>
+          ▶ Resume
+        </button>
+      ) : (
+        <button onClick={anim.pause} style={btnStyle('#64748b')}>
+          ⏸ Pause
+        </button>
+      )}
+
+      {/* Reset */}
+      <button onClick={anim.reset} style={btnStyle('#475569')}>
+        ⏮
+      </button>
+
+      {/* Stop — show all */}
+      <button onClick={anim.stop} style={btnStyle('#991b1b')}>
+        ■ Stop
+      </button>
+
+      {/* Skip (group mode) */}
+      {anim.queueLen > 1 && !anim.done && (
+        <button
+          onClick={anim.skipToNext}
+          disabled={anim.queuePos >= anim.queueLen - 1}
+          style={{
+            ...btnStyle('#0369a1'),
+            opacity: anim.queuePos >= anim.queueLen - 1 ? 0.4 : 1,
+          }}
+        >
+          ⏭ Skip
+        </button>
+      )}
+
+      {/* Speed slider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ fontSize: 10, color: '#475569', fontWeight: 600 }}>Speed</span>
+        <input
+          type="range"
+          min={50}
+          max={1500}
+          step={50}
+          value={1550 - anim.speed}
+          onChange={(e) => anim.setSpeed(1550 - Number(e.target.value))}
+          style={{ width: 80, accentColor: CB.blue }}
+        />
+        <span style={{ fontSize: 10, color: '#475569', fontWeight: 600, minWidth: 36 }}>
+          {anim.speed}ms
+        </span>
+      </div>
+
+      {/* Progress */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
+        {anim.queueLen > 1 && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: '#0369a1',
+              background: '#dbeafe',
+              padding: '2px 8px',
+              borderRadius: 4,
+            }}
+          >
+            Rollout {anim.queuePos + 1}/{anim.queueLen}
+            {viewName ? ` — ${viewName}` : ''}
+          </span>
+        )}
+        <span style={{ fontSize: 11, fontWeight: 600, color: '#334155' }}>
+          Seg {Math.min(anim.visibleCount, anim.totalSegments)}/{anim.totalSegments}
+        </span>
+        <div
+          style={{
+            width: 80,
+            height: 6,
+            background: '#e2e8f0',
+            borderRadius: 3,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              width: `${pct}%`,
+              height: '100%',
+              background: `linear-gradient(90deg,${CB.blue},${CB.cyan})`,
+              borderRadius: 3,
+              transition: 'width 0.15s',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function btnStyle(bg: string): React.CSSProperties {
+  return {
+    padding: '4px 12px',
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: 'pointer',
+    background: bg,
+    color: '#fff',
+    border: 'none',
+    borderRadius: 4,
+  };
+}
+
+/* ═══ Main ScaffoldTab ═══ */
+export default function ScaffoldTab({ row }: { row: Rollout }) {
+  const segs = row.segments || [],
+    meta = row.metadata || {};
+  const [exp, setExp] = useState<Record<number, boolean>>({});
+  const [tt, setTt] = useState<TooltipData | null>(null);
+  const [ttPos, setTtPos] = useState<TooltipPos>({ x: 0, y: 0 });
+  const toggle = (i: number) => setExp((e: Record<number, boolean>) => ({ ...e, [i]: !e[i] }));
+
+  const { animateRequest } = useAppState();
+  const dispatch = useAppDispatch();
+
+  const relevant = filterRelevant(segs);
+
   const tTot = Math.max(
     1,
     relevant.reduce((a, s) => a + (s.token_count || 0), 0),
@@ -44,9 +195,56 @@ export default function ScaffoldTab({ row }: { row: Rollout }) {
   const tGen = relevant
     .filter((s) => (s.tag || '').startsWith('cycle') || s.tag === 'thinking')
     .reduce((a, s) => a + (s.token_count || 0), 0);
+
+  // Animation state
+  const [animQueue, setAnimQueue] = useState<number[]>([]);
+  const anim = useAnimationState(relevant.length, animQueue, dispatch);
+  const lastSegRef = useRef<HTMLDivElement | null>(null);
+
+  // Detect animation request from context
+  useEffect(() => {
+    if (animateRequest) {
+      setAnimQueue(animateRequest.queue);
+      dispatch({ type: 'CLEAR_ANIMATE_REQUEST' });
+    }
+  }, [animateRequest, dispatch]);
+
+  // Start playing when queue is set
+  useEffect(() => {
+    if (animQueue.length > 0 && !anim.active && !anim.done) {
+      anim.play();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animQueue]);
+
+  // Auto-scroll to last visible timeline segment
+  useEffect(() => {
+    if (anim.active && lastSegRef.current) {
+      lastSegRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [anim.active, anim.visibleCount]);
+
+  // Determine which segments to render
+  const isAnimating = anim.active || anim.done;
+  const visibleRelevant = isAnimating ? relevant.slice(0, anim.visibleCount) : relevant;
+
+  // Compute tTot for visible segments during animation (for proportional widths)
+  const visTot = isAnimating
+    ? Math.max(
+        1,
+        visibleRelevant.reduce((a, s) => a + (s.token_count || 0), 0),
+      )
+    : tTot;
+
+  const viewName = (meta._view_name as string) || '';
+
   return (
     <div style={{ paddingBottom: 40 }}>
       <Tooltip data={tt} pos={ttPos} />
+
+      {/* Animation controls */}
+      {isAnimating && <AnimationBar anim={anim} viewName={viewName} />}
+
       <HelpBox>
         This tab shows the <strong>interleaved scaffold → generation structure</strong> of ESC-GRPO.
         Segments with diagonal stripes are <strong>masked</strong> (no loss applied). Segments in
@@ -80,14 +278,15 @@ export default function ScaffoldTab({ row }: { row: Rollout }) {
               border: '1px solid #e2e8f0',
             }}
           >
-            {relevant.map((seg, i) => {
+            {visibleRelevant.map((seg, i) => {
               const role = segRole(seg),
                 rv = RV[role] || RV.other;
-              const pct = (seg.token_count || 0) / tTot;
+              const pct = (seg.token_count || 0) / visTot;
               const wStr = `max(8px,${pct * 100}%)`;
               const bg = seg.masked
                 ? `repeating-linear-gradient(45deg,${rv.bg},${rv.bg} 4px,${rv.bg}aa 4px,${rv.bg}aa 8px)`
                 : `linear-gradient(to top,${rv.bg},${rv.bg}e6)`;
+              const isNew = isAnimating && i === visibleRelevant.length - 1;
               return (
                 <div
                   key={i}
@@ -112,7 +311,8 @@ export default function ScaffoldTab({ row }: { row: Rollout }) {
                     overflow: 'hidden',
                     opacity: exp[seg._idx] ? 1 : 0.85,
                     background: bg,
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                    boxShadow: isNew ? `0 0 12px ${rv.bg}88` : '0 1px 2px rgba(0,0,0,0.1)',
+                    animation: isNew ? 'esc-seg-appear 0.2s ease-out' : undefined,
                   }}
                 >
                   {pct > 0.05 && (
@@ -191,15 +391,18 @@ export default function ScaffoldTab({ row }: { row: Rollout }) {
       )}
       <Panel title={`Timeline (${relevant.length} segments · click to expand)`} bc={CB.slate}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {relevant.map((seg, i) => {
+          {visibleRelevant.map((seg, i) => {
             const tag = seg.tag || '',
               role = segRole(seg),
               rv = RV[role] || RV.other,
               src = getSrc(seg.source),
               isE = exp[seg._idx];
+            const isNew = isAnimating && i === visibleRelevant.length - 1;
+            const isLast = i === visibleRelevant.length - 1;
             return (
               <div
                 key={i}
+                ref={isLast ? lastSegRef : undefined}
                 onClick={() => toggle(seg._idx)}
                 style={{
                   borderLeft: `4px solid ${rv.bg}`,
@@ -210,6 +413,8 @@ export default function ScaffoldTab({ row }: { row: Rollout }) {
                   border: '1px solid #e2e8f0',
                   borderLeftWidth: 4,
                   borderLeftColor: rv.bg,
+                  animation: isNew ? 'esc-seg-appear 0.2s ease-out' : undefined,
+                  boxShadow: isNew ? `0 0 8px ${rv.bg}44` : undefined,
                 }}
               >
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
