@@ -80,7 +80,15 @@ export interface ChangeInfo {
 
 /* ═══ UI state types ═══ */
 
-export type TabKey = 'overview' | 'scaffold' | 'tokens' | 'group' | 'trends' | 'dashboard' | 'raw';
+export type TabKey =
+  | 'overview'
+  | 'scaffold'
+  | 'stream'
+  | 'tokens'
+  | 'group'
+  | 'trends'
+  | 'dashboard'
+  | 'raw';
 export type SidebarView = 'list' | 'batch';
 export type ThemeSetting = 'system' | 'light' | 'dark';
 export type ColorMode = 'hybrid' | 'proximity' | 'role';
@@ -246,6 +254,11 @@ export interface RoleMapEntry {
 /* ═══ Animation ═══ */
 
 export interface AnimateRequest {
+  target: number;
+  queue: number[];
+}
+
+export interface StreamRequest {
   target: number;
   queue: number[];
 }

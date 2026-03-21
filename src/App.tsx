@@ -21,6 +21,7 @@ import OverviewTab from './components/tabs/OverviewTab';
 import ScaffoldTab from './components/tabs/ScaffoldTab';
 import TokenTab from './components/tabs/TokenTab';
 import GroupTab from './components/tabs/GroupTab';
+import StreamTab from './components/tabs/StreamTab';
 import TrendsTab from './components/tabs/TrendsTab';
 import WandbDashboardTab from './components/tabs/WandbDashboardTab';
 
@@ -136,6 +137,7 @@ function AppInner() {
                       )}
                       {tabId === 'overview' && <OverviewTab row={row} rows={rows} />}
                       {tabId === 'scaffold' && <ScaffoldTab row={row} />}
+                      {tabId === 'stream' && <StreamTab row={row} rows={rows} />}
                       {tabId === 'tokens' && (
                         <TokenTab
                           weights={meta._is_weights || []}
@@ -154,6 +156,9 @@ function AppInner() {
                           }}
                           onAnimate={(target: number, queue: number[]) =>
                             dispatch({ type: 'ANIMATE_SCAFFOLD', target, queue })
+                          }
+                          onStream={(target: number, queue: number[]) =>
+                            dispatch({ type: 'ANIMATE_STREAM', target, queue })
                           }
                         />
                       )}
