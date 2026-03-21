@@ -46,6 +46,7 @@ export default function GlobalStyles({ isDark }: GlobalStylesProps) {
         .panel { break-inside: avoid; }
         .export-tab-section { page-break-before: always; }
         .export-tab-header { display: block !important; }
+        [style*="grid-template-columns"] { display: grid !important; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
       }
       @media screen { [data-print-header] { display: none; } }
