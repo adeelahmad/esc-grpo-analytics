@@ -24,7 +24,6 @@ export default function VideoExportPanel({ rollouts, onClose }: VideoExportPanel
   const [resolution, setResolution] = useState<ResolutionKey>('1080p');
   const [tokPerSec, setTokPerSec] = useState(DEFAULT_TOKENS_PER_SEC);
   const [rendering, setRendering] = useState(false);
-  const [renderProgress, setRenderProgress] = useState(0);
 
   const isSingle = rollouts.length === 1;
   const res = RESOLUTION[resolution];
@@ -40,14 +39,11 @@ export default function VideoExportPanel({ rollouts, onClose }: VideoExportPanel
 
   const handleRender = useCallback(async () => {
     setRendering(true);
-    setRenderProgress(0);
 
     try {
       const payload = {
         compositionId: isSingle ? 'RolloutVideo' : 'GroupVideo',
-        inputProps: isSingle
-          ? { rollout: rollouts[0], tokPerSec }
-          : { rollouts, tokPerSec },
+        inputProps: isSingle ? { rollout: rollouts[0], tokPerSec } : { rollouts, tokPerSec },
         resolution,
         fps: VIDEO_FPS,
         durationInFrames,
@@ -71,13 +67,13 @@ export default function VideoExportPanel({ rollouts, onClose }: VideoExportPanel
       a.download = `rollout_${isSingle ? 'single' : 'group'}_${resolution}.mp4`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
       alert(
-        `Video rendering requires the render server.\n\nUse the CLI instead:\n  npm run render:video -- --input <file.jsonl>\n\nOr use Remotion Studio:\n  npm run remotion:studio`,
+        `Video render failed: ${msg}\n\nIf the dev server is not running, use the CLI:\n  npm run render:video -- --input <file.jsonl>`,
       );
     } finally {
       setRendering(false);
-      setRenderProgress(0);
     }
   }, [isSingle, rollouts, tokPerSec, resolution, durationInFrames]);
 
@@ -253,9 +249,7 @@ export default function VideoExportPanel({ rollouts, onClose }: VideoExportPanel
               fontSize: 13,
               fontWeight: 700,
               cursor: rendering ? 'wait' : 'pointer',
-              background: rendering
-                ? '#94a3b8'
-                : `linear-gradient(135deg,${CB.blue},${CB.cyan})`,
+              background: rendering ? '#94a3b8' : `linear-gradient(135deg,${CB.blue},${CB.cyan})`,
               color: '#fff',
               border: 'none',
               borderRadius: 6,
@@ -263,7 +257,7 @@ export default function VideoExportPanel({ rollouts, onClose }: VideoExportPanel
               opacity: rendering ? 0.7 : 1,
             }}
           >
-            {rendering ? `Rendering… ${Math.round(renderProgress * 100)}%` : 'Render & Download MP4'}
+            {rendering ? 'Rendering… please wait' : 'Render & Download MP4'}
           </button>
         </div>
 
@@ -280,13 +274,14 @@ export default function VideoExportPanel({ rollouts, onClose }: VideoExportPanel
           >
             <div
               style={{
-                width: `${renderProgress * 100}%`,
+                width: '30%',
                 height: '100%',
                 background: `linear-gradient(90deg,${CB.blue},${CB.cyan})`,
                 borderRadius: 2,
-                transition: 'width 0.3s',
+                animation: 'indeterminate 1.5s ease-in-out infinite',
               }}
             />
+            <style>{`@keyframes indeterminate { 0% { margin-left: 0%; } 50% { margin-left: 70%; } 100% { margin-left: 0%; } }`}</style>
           </div>
         )}
 
