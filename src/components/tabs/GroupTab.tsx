@@ -12,9 +12,10 @@ interface GroupTabProps {
   selRow: number;
   setSelRow: (i: number) => void;
   onCompare?: (indices: number[]) => void;
+  onAnimate?: (target: number, queue: number[]) => void;
 }
 
-export default function GroupTab({ rows, selRow, setSelRow, onCompare }: GroupTabProps) {
+export default function GroupTab({ rows, selRow, setSelRow, onCompare, onAnimate }: GroupTabProps) {
   const cur = rows[selRow];
   if (!cur) return null;
   const prompt = cur.prompt || cur.prompt_text || '';
@@ -55,25 +56,49 @@ export default function GroupTab({ rows, selRow, setSelRow, onCompare }: GroupTa
         WINNER is the rollout with the highest advantage (the one GRPO learns from most). The 💀
         LEAST ADV is the one that contributed least. Your current row is highlighted in blue.
       </HelpBox>
-      {onCompare && siblings.length >= 2 && siblings.length <= 4 && (
-        <button
-          onClick={() => onCompare(siblings.map((s) => s.i))}
-          style={{
-            marginBottom: 14,
-            padding: '8px 20px',
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: 'pointer',
-            background: `linear-gradient(135deg,${CB.blue},${CB.purple})`,
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            boxShadow: '0 2px 8px rgba(0,119,187,0.3)',
-          }}
-        >
-          ⚖️ Compare these {siblings.length} siblings side-by-side
-        </button>
-      )}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+        {onCompare && siblings.length >= 2 && siblings.length <= 4 && (
+          <button
+            onClick={() => onCompare(siblings.map((s) => s.i))}
+            style={{
+              padding: '8px 20px',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: `linear-gradient(135deg,${CB.blue},${CB.purple})`,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              boxShadow: '0 2px 8px rgba(0,119,187,0.3)',
+            }}
+          >
+            ⚖️ Compare these {siblings.length} siblings side-by-side
+          </button>
+        )}
+        {onAnimate && siblings.length >= 2 && (
+          <button
+            onClick={() =>
+              onAnimate(
+                siblings[0].i,
+                siblings.map((s) => s.i),
+              )
+            }
+            style={{
+              padding: '8px 20px',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: `linear-gradient(135deg,${CB.green},${CB.cyan})`,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              boxShadow: '0 2px 8px rgba(0,153,136,0.3)',
+            }}
+          >
+            ▶ Animate Group
+          </button>
+        )}
+      </div>
       <Panel title="Group Comparison Insights" bc={CB.purple}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
           <Chip label="Group" value={siblings.length} bg="#f8fafc" color="#0f172a" />
@@ -378,6 +403,26 @@ export default function GroupTab({ rows, selRow, setSelRow, onCompare }: GroupTa
                   </span>
                 )}
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {onAnimate && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAnimate(i, [i]);
+                      }}
+                      style={{
+                        fontSize: 10,
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        background: `linear-gradient(135deg,${CB.green},${CB.cyan})`,
+                        color: '#fff',
+                        fontWeight: 700,
+                        border: 'none',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ▶
+                    </button>
+                  )}
                   {isW && (
                     <span
                       style={{

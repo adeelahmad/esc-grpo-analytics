@@ -152,6 +152,9 @@ function AppInner() {
                             dispatch({ type: 'SET_SEL_ROWS', selRows: idxs.slice(0, 4) });
                             dispatch({ type: 'SET_COMPARE', on: true });
                           }}
+                          onAnimate={(target: number, queue: number[]) =>
+                            dispatch({ type: 'ANIMATE_SCAFFOLD', target, queue })
+                          }
                         />
                       )}
                       {tabId === 'trends' && <TrendsTab rows={rows} />}

@@ -1,5 +1,13 @@
 import { createContext, useContext, useReducer, type ReactNode, type Dispatch } from 'react';
-import type { Rollout, TabKey, SidebarView, AppSettings, FilterState, ChangeInfo } from '../types';
+import type {
+  Rollout,
+  TabKey,
+  SidebarView,
+  AppSettings,
+  FilterState,
+  ChangeInfo,
+  AnimateRequest,
+} from '../types';
 
 /* ═══ State shape ═══ */
 export interface AppState {
@@ -16,6 +24,7 @@ export interface AppState {
   treeOpen: Record<string, boolean>;
   changeInfo: ChangeInfo | null;
   exporting: boolean;
+  animateRequest: AnimateRequest | null;
 }
 
 export const INITIAL_FILTERS: FilterState = {
@@ -49,6 +58,7 @@ const INITIAL_STATE: AppState = {
   treeOpen: {},
   changeInfo: null,
   exporting: false,
+  animateRequest: null,
 };
 
 /* ═══ Actions ═══ */
@@ -70,6 +80,8 @@ export type AppAction =
   | { type: 'TOGGLE_TREE'; key: string }
   | { type: 'CLEAR_CHANGE_INFO' }
   | { type: 'SET_EXPORTING'; exporting: boolean }
+  | { type: 'ANIMATE_SCAFFOLD'; target: number; queue: number[] }
+  | { type: 'CLEAR_ANIMATE_REQUEST' }
   | { type: 'RESET' };
 
 function computeAggregates(rows: Rollout[]) {
@@ -138,6 +150,15 @@ function reducer(state: AppState, action: AppAction): AppState {
       return { ...state, changeInfo: null };
     case 'SET_EXPORTING':
       return { ...state, exporting: action.exporting };
+    case 'ANIMATE_SCAFFOLD':
+      return {
+        ...state,
+        tab: 'scaffold' as TabKey,
+        sel: action.target,
+        animateRequest: { target: action.target, queue: action.queue },
+      };
+    case 'CLEAR_ANIMATE_REQUEST':
+      return { ...state, animateRequest: null };
     case 'RESET':
       return { ...INITIAL_STATE, settings: state.settings };
     default:

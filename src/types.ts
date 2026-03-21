@@ -243,6 +243,13 @@ export interface RoleMapEntry {
   seg: Segment;
 }
 
+/* ═══ Animation ═══ */
+
+export interface AnimateRequest {
+  target: number;
+  queue: number[];
+}
+
 /* ═══ Component prop helpers ═══ */
 
 export interface ChipProps {

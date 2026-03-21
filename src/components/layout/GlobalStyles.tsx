@@ -61,6 +61,10 @@ export default function GlobalStyles({ isDark }: GlobalStylesProps) {
         0%, 100% { opacity: 1; }
         50%      { opacity: 0.5; }
       }
+      @keyframes esc-seg-appear {
+        0%   { opacity: 0; transform: translateY(6px) scaleX(0.7); }
+        100% { opacity: 1; transform: translateY(0) scaleX(1); }
+      }
     `}</style>
   );
 }
