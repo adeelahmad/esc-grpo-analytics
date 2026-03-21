@@ -15,6 +15,7 @@ export interface AppState {
   settings: AppSettings;
   treeOpen: Record<string, boolean>;
   changeInfo: ChangeInfo | null;
+  exporting: boolean;
 }
 
 export const INITIAL_FILTERS: FilterState = {
@@ -47,6 +48,7 @@ const INITIAL_STATE: AppState = {
   settings: INITIAL_SETTINGS,
   treeOpen: {},
   changeInfo: null,
+  exporting: false,
 };
 
 /* ═══ Actions ═══ */
@@ -67,6 +69,7 @@ export type AppAction =
   | { type: 'UPDATE_SETTING'; key: keyof AppSettings; value: AppSettings[keyof AppSettings] }
   | { type: 'TOGGLE_TREE'; key: string }
   | { type: 'CLEAR_CHANGE_INFO' }
+  | { type: 'SET_EXPORTING'; exporting: boolean }
   | { type: 'RESET' };
 
 function computeAggregates(rows: Rollout[]) {
@@ -133,6 +136,8 @@ function reducer(state: AppState, action: AppAction): AppState {
       };
     case 'CLEAR_CHANGE_INFO':
       return { ...state, changeInfo: null };
+    case 'SET_EXPORTING':
+      return { ...state, exporting: action.exporting };
     case 'RESET':
       return { ...INITIAL_STATE, settings: state.settings };
     default:

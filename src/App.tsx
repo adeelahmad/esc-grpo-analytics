@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { AppProvider, useAppState, useAppDispatch } from './context/AppContext';
 import {
   useLoadPersistedData,
@@ -14,7 +14,7 @@ import { isForced } from './utils/data';
 import GlobalStyles from './components/layout/GlobalStyles';
 import EmptyState from './components/layout/EmptyState';
 import Sidebar from './components/sidebar/Sidebar';
-import TabBar from './components/layout/TabBar';
+import TabBar, { TABS } from './components/layout/TabBar';
 import PrintHeader from './components/layout/PrintHeader';
 import CompareView from './components/layout/CompareView';
 import OverviewTab from './components/tabs/OverviewTab';
@@ -25,7 +25,7 @@ import TrendsTab from './components/tabs/TrendsTab';
 import WandbDashboardTab from './components/tabs/WandbDashboardTab';
 
 function AppInner() {
-  const { rows, sel, tab, compareMode, settings } = useAppState();
+  const { rows, sel, tab, compareMode, settings, exporting } = useAppState();
   const dispatch = useAppDispatch();
 
   useLoadPersistedData();
@@ -49,6 +49,15 @@ function AppInner() {
   const dk = useCallback((l: string, d: string) => (isDark ? `#${d}` : `#${l}`), [isDark]);
 
   const themeVars = { background: dk('f1f5f9', '0f172a'), color: dk('0f172a', 'f1f5f9') };
+
+  useEffect(() => {
+    if (!exporting) return;
+    const frame = requestAnimationFrame(() => {
+      window.print();
+      dispatch({ type: 'SET_EXPORTING', exporting: false });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [exporting, dispatch]);
 
   if (!rows.length) {
     return (
@@ -101,52 +110,74 @@ function AppInner() {
               data-content=""
               style={{ flex: 1, overflowY: 'auto', padding: compareMode ? 10 : 20 }}
             >
-              {compareMode ? (
+              {compareMode && !exporting ? (
                 <CompareView />
               ) : (
-                <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-                  {tab === 'overview' && <OverviewTab row={row} rows={rows} />}
-                  {tab === 'scaffold' && <ScaffoldTab row={row} />}
-                  {tab === 'tokens' && (
-                    <TokenTab
-                      weights={meta._is_weights || []}
-                      changes={meta.token_changes || []}
-                      segments={row.segments || []}
-                    />
-                  )}
-                  {tab === 'group' && (
-                    <GroupTab
-                      rows={rows}
-                      selRow={sel}
-                      setSelRow={(i: number) => dispatch({ type: 'SET_SEL', sel: i })}
-                      onCompare={(idxs: number[]) => {
-                        dispatch({ type: 'SET_SEL_ROWS', selRows: idxs.slice(0, 4) });
-                        dispatch({ type: 'SET_COMPARE', on: true });
-                      }}
-                    />
-                  )}
-                  {tab === 'trends' && <TrendsTab rows={rows} />}
-                  {tab === 'dashboard' && <WandbDashboardTab rows={rows} row={row} />}
-                  {tab === 'raw' && (
-                    <pre
-                      style={{
-                        fontSize: 11,
-                        background: '#1e293b',
-                        padding: 16,
-                        borderRadius: 8,
-                        overflow: 'auto',
-                        whiteSpace: 'pre-wrap',
-                        color: '#f8fafc',
-                        lineHeight: 1.6,
-                        border: '1px solid #0f172a',
-                        maxHeight: '100%',
-                        margin: 0,
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)',
-                      }}
+                <div style={{ maxWidth: exporting ? 'none' : 1400, margin: '0 auto' }}>
+                  {(exporting ? TABS.map((t) => t.id) : [tab]).map((tabId, idx) => (
+                    <div
+                      key={tabId}
+                      className={exporting && idx > 0 ? 'export-tab-section' : undefined}
                     >
-                      {JSON.stringify(row, null, 2)}
-                    </pre>
-                  )}
+                      {exporting && (
+                        <h2
+                          className="export-tab-header"
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 700,
+                            margin: idx === 0 ? '0 0 12px' : '0 0 12px',
+                            padding: '12px 0 8px',
+                            borderBottom: `2px solid ${dk('cbd5e1', '334155')}`,
+                            color: dk('0f172a', 'f1f5f9'),
+                          }}
+                        >
+                          {TABS.find((t) => t.id === tabId)?.lbl}
+                        </h2>
+                      )}
+                      {tabId === 'overview' && <OverviewTab row={row} rows={rows} />}
+                      {tabId === 'scaffold' && <ScaffoldTab row={row} />}
+                      {tabId === 'tokens' && (
+                        <TokenTab
+                          weights={meta._is_weights || []}
+                          changes={meta.token_changes || []}
+                          segments={row.segments || []}
+                        />
+                      )}
+                      {tabId === 'group' && (
+                        <GroupTab
+                          rows={rows}
+                          selRow={sel}
+                          setSelRow={(i: number) => dispatch({ type: 'SET_SEL', sel: i })}
+                          onCompare={(idxs: number[]) => {
+                            dispatch({ type: 'SET_SEL_ROWS', selRows: idxs.slice(0, 4) });
+                            dispatch({ type: 'SET_COMPARE', on: true });
+                          }}
+                        />
+                      )}
+                      {tabId === 'trends' && <TrendsTab rows={rows} />}
+                      {tabId === 'dashboard' && <WandbDashboardTab rows={rows} row={row} />}
+                      {tabId === 'raw' && (
+                        <pre
+                          style={{
+                            fontSize: 11,
+                            background: '#1e293b',
+                            padding: 16,
+                            borderRadius: 8,
+                            overflow: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            color: '#f8fafc',
+                            lineHeight: 1.6,
+                            border: '1px solid #0f172a',
+                            maxHeight: '100%',
+                            margin: 0,
+                            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)',
+                          }}
+                        >
+                          {JSON.stringify(row, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
