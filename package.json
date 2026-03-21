@@ -15,6 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "render:video": "npx tsx src/remotion/render.ts",
+    "remotion:studio": "npx remotion studio",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -27,8 +29,13 @@
     ]
   },
   "dependencies": {
+    "@remotion/bundler": "^4.0.438",
+    "@remotion/cli": "^4.0.438",
+    "@remotion/player": "^4.0.438",
+    "@remotion/renderer": "^4.0.438",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.438"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

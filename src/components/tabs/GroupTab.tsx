@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Rollout } from '../../types';
 import { CB } from '../../constants/colors';
 import { safeMax, safeMin } from '../../utils/math';
@@ -6,6 +7,7 @@ import { isForced } from '../../utils/data';
 import Chip from '../ui/Chip';
 import Panel from '../ui/Panel';
 import HelpBox from '../ui/HelpBox';
+import VideoExportPanel from '../VideoExportPanel';
 
 interface GroupTabProps {
   rows: Rollout[];
@@ -16,6 +18,7 @@ interface GroupTabProps {
 }
 
 export default function GroupTab({ rows, selRow, setSelRow, onCompare, onAnimate }: GroupTabProps) {
+  const [showVideoExport, setShowVideoExport] = useState(false);
   const cur = rows[selRow];
   if (!cur) return null;
   const prompt = cur.prompt || cur.prompt_text || '';
@@ -98,7 +101,31 @@ export default function GroupTab({ rows, selRow, setSelRow, onCompare, onAnimate
             ▶ Animate Group
           </button>
         )}
+        {siblings.length >= 2 && (
+          <button
+            onClick={() => setShowVideoExport(true)}
+            style={{
+              padding: '8px 20px',
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              background: `linear-gradient(135deg,${CB.orange},${CB.yellow})`,
+              color: '#fff',
+              border: 'none',
+              borderRadius: 6,
+              boxShadow: '0 2px 8px rgba(238,119,51,0.3)',
+            }}
+          >
+            🎬 Export Video
+          </button>
+        )}
       </div>
+      {showVideoExport && (
+        <VideoExportPanel
+          rollouts={siblings.map(({ r }) => r)}
+          onClose={() => setShowVideoExport(false)}
+        />
+      )}
       <Panel title="Group Comparison Insights" bc={CB.purple}>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16 }}>
           <Chip label="Group" value={siblings.length} bg="#f8fafc" color="#0f172a" />
