@@ -39,7 +39,11 @@ export default function GroupVideo({
             <Series.Sequence durationInFrames={duration}>
               <RolloutVideo rollout={rollout} tokPerSec={tokPerSec} />
             </Series.Sequence>
-            {!isLast && <Series.Sequence durationInFrames={PAUSE_FRAMES} />}
+            {!isLast && (
+              <Series.Sequence durationInFrames={PAUSE_FRAMES}>
+                <div style={{ width: '100%', height: '100%', backgroundColor: 'black' }} />
+              </Series.Sequence>
+            )}
           </React.Fragment>
         );
       })}
