@@ -110,8 +110,8 @@ function AppInner() {
               data-content=""
               style={{ flex: 1, overflowY: 'auto', padding: compareMode ? 10 : 20 }}
             >
-              {compareMode && !exporting ? (
-                <CompareView />
+              {compareMode ? (
+                <CompareView exporting={exporting} />
               ) : (
                 <div style={{ maxWidth: exporting ? 'none' : 1400, margin: '0 auto' }}>
                   {(exporting ? TABS.map((t) => t.id) : [tab]).map((tabId, idx) => (

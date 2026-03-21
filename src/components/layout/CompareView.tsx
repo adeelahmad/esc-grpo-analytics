@@ -2,14 +2,20 @@ import { CB } from '../../constants/colors';
 import { fmtIter } from '../../utils/format';
 import { isForced } from '../../utils/data';
 import { useAppState, useAppDispatch } from '../../context/AppContext';
+import { TABS } from './TabBar';
 import type { Rollout } from '../../types';
 import OverviewTab from '../tabs/OverviewTab';
 import ScaffoldTab from '../tabs/ScaffoldTab';
 import TokenTab from '../tabs/TokenTab';
 import GroupTab from '../tabs/GroupTab';
 import TrendsTab from '../tabs/TrendsTab';
+import WandbDashboardTab from '../tabs/WandbDashboardTab';
 
-export default function CompareView() {
+interface CompareViewProps {
+  exporting?: boolean;
+}
+
+export default function CompareView({ exporting }: CompareViewProps) {
   const { rows, sel, tab, selRows } = useAppState();
   const dispatch = useAppDispatch();
 
@@ -20,11 +26,12 @@ export default function CompareView() {
     (r) => (r.prompt || r.prompt_text) === (cmpRows[0].prompt || cmpRows[0].prompt_text),
   );
 
-  const renderTab = (r: Rollout, idx: number) => {
+  const renderTab = (r: Rollout, idx: number, tabId?: string) => {
+    const t = tabId || tab;
     const m = r.metadata || {};
-    if (tab === 'overview') return <OverviewTab row={r} rows={rows} />;
-    if (tab === 'scaffold') return <ScaffoldTab row={r} />;
-    if (tab === 'tokens')
+    if (t === 'overview') return <OverviewTab row={r} rows={rows} />;
+    if (t === 'scaffold') return <ScaffoldTab row={r} />;
+    if (t === 'tokens')
       return (
         <TokenTab
           weights={(m as any)._is_weights || []}
@@ -32,7 +39,7 @@ export default function CompareView() {
           segments={r.segments || []}
         />
       );
-    if (tab === 'group')
+    if (t === 'group')
       return (
         <GroupTab
           rows={rows}
@@ -44,8 +51,9 @@ export default function CompareView() {
           }}
         />
       );
-    if (tab === 'trends') return <TrendsTab rows={rows} />;
-    if (tab === 'raw')
+    if (t === 'trends') return <TrendsTab rows={rows} />;
+    if (t === 'dashboard') return <WandbDashboardTab rows={rows} row={r} />;
+    if (t === 'raw')
       return (
         <pre
           style={{
@@ -181,38 +189,57 @@ export default function CompareView() {
         </div>
       </div>
       {/* Side-by-side tab content */}
-      <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 10, alignItems: 'start' }}>
-        {cmpRows.map((r, ci) => (
-          <div
-            key={ci}
-            style={{
-              minWidth: 0,
-              borderRadius: 8,
-              border: `1.5px solid ${r.correct ? CB.green : CB.red}33`,
-              background: 'var(--color-background-primary)',
-              padding: 8,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-            }}
-          >
-            <div
+      {(exporting ? TABS.map((t) => t.id) : [tab]).map((tabId, tIdx) => (
+        <div key={tabId} className={exporting && tIdx > 0 ? 'export-tab-section' : undefined}>
+          {exporting && (
+            <h2
+              className="export-tab-header"
               style={{
-                fontSize: 10,
+                fontSize: 18,
                 fontWeight: 700,
-                color: r.correct ? CB.green : CB.red,
-                marginBottom: 6,
-                padding: '2px 8px',
-                background: r.correct ? '#dcfce7' : '#fee2e2',
-                borderRadius: 4,
-                display: 'inline-block',
+                margin: '0 0 12px',
+                padding: '12px 0 8px',
+                borderBottom: '2px solid #cbd5e1',
+                color: '#0f172a',
               }}
             >
-              Row {selRows[ci] + 1} · {fmtIter(r.iteration)} ·{' '}
-              {(r.metadata as any)?._view_name || '?'}
-            </div>
-            {renderTab(r, ci)}
+              {TABS.find((t) => t.id === tabId)?.lbl}
+            </h2>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 10, alignItems: 'start' }}>
+            {cmpRows.map((r, ci) => (
+              <div
+                key={ci}
+                style={{
+                  minWidth: 0,
+                  borderRadius: 8,
+                  border: `1.5px solid ${r.correct ? CB.green : CB.red}33`,
+                  background: 'var(--color-background-primary)',
+                  padding: 8,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: r.correct ? CB.green : CB.red,
+                    marginBottom: 6,
+                    padding: '2px 8px',
+                    background: r.correct ? '#dcfce7' : '#fee2e2',
+                    borderRadius: 4,
+                    display: 'inline-block',
+                  }}
+                >
+                  Row {selRows[ci] + 1} · {fmtIter(r.iteration)} ·{' '}
+                  {(r.metadata as any)?._view_name || '?'}
+                </div>
+                {renderTab(r, ci, tabId)}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
